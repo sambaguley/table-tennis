@@ -1,0 +1,34 @@
+{
+  "name": "table-tennis",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "parcel src/index.html"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sambaguley/table-tennis.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sambaguley/table-tennis/issues"
+  },
+  "homepage": "https://github.com/sambaguley/table-tennis#readme",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^3.7.1",
+    "@typescript-eslint/parser": "^3.7.1",
+    "eslint": "^7.6.0",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-plugin-import": "^2.22.0",
+    "jest": "^26.2.2",
+    "parcel-bundler": "^1.12.4",
+    "typescript": "^3.9.7"
+  },
+  "browserslist": [
+    "defaults"
+  ]
+}
