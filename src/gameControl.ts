@@ -17,6 +17,21 @@ const BALL_RADIUS = 10;
 const BAT_HEIGHT = 60;
 const BAT_WIDTH = 8;
 
+const WIN_SCORE = 11;
+
+var BLIP;
+
+const INPUT = {
+  UP: "q",
+  DOWN: "a",
+};
+
+const PHASE = {
+  START: "START",
+  GAME: "GAME",
+  END: "END",
+};
+
 const getDisplacement = (velocity, angle) => {
   // Angles in radians;
   const dy = velocity * Math.cos(angle);
@@ -39,18 +54,20 @@ const INITIAL_BALL_STATE = {
   height: 10,
   velocity: 7,
   angle: randomiseBallLocation()[1],
+  dx: 0,
+  dy: 0,
 };
 
 const INITIAL_LEFT_BAT_STATE = {
   x: BAT_SIDE_MARGIN,
   y: GAME_HEIGHT / 2,
-  speed: 4,
+  speed: 6,
 };
 
 const INITIAL_RIGHT_BAT_STATE = {
   x: GAME_WIDTH - BAT_SIDE_MARGIN,
   y: GAME_HEIGHT / 2,
-  speed: 4,
+  speed: 3,
 };
 
 const BACKGROUND_COLOR = "#333";
@@ -58,7 +75,9 @@ const MAIN_COLOR = "#CCC";
 
 const makeInitialGameState = () => {
   const [ballY, angle] = randomiseBallLocation();
+  BLIP = new Audio("./blip.wav");
   return {
+    phase: PHASE.START,
     ball: {
       x: INITIAL_BALL_STATE.x,
       y: ballY,
@@ -66,16 +85,26 @@ const makeInitialGameState = () => {
       height: INITIAL_BALL_STATE.height,
       velocity: INITIAL_BALL_STATE.velocity,
       angle: angle,
+      paused: false,
+      dy: 0,
+      dx: 0,
     },
     batLeft: {
       x: INITIAL_LEFT_BAT_STATE.x,
       y: INITIAL_LEFT_BAT_STATE.y,
       speed: 0,
+      upPressed: false,
+      downPressed: false,
     },
     batRight: {
       x: INITIAL_RIGHT_BAT_STATE.x,
       y: INITIAL_RIGHT_BAT_STATE.y,
+      direction: null,
       speed: 0,
+    },
+    score: {
+      player1: 0,
+      player2: 0,
     },
   };
 };
@@ -86,6 +115,24 @@ const clearCanvas = () => {
   ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 };
 
+const playBlip = () => {
+  const soundPromise = BLIP.play();
+  // In browsers that don’t yet support this functionality,
+  // playPromise won’t be defined.
+  if (soundPromise !== undefined) {
+    soundPromise
+      .then(function () {
+        // console.log("PLAY SOUND");
+        // Automatic playback started!
+      })
+      .catch(function (error) {
+        console.log("Sound error: ", error);
+        // Automatic playback failed.
+        // Show a UI element to let the user manually start playback.
+      });
+  }
+};
+
 const drawCenterLine = () => {
   ctx.strokeStyle = MAIN_COLOR;
   ctx.setLineDash([10, 10]);
@@ -93,6 +140,22 @@ const drawCenterLine = () => {
   ctx.moveTo(GAME_WIDTH / 2, 0);
   ctx.lineTo(GAME_WIDTH / 2, GAME_HEIGHT);
   ctx.stroke();
+};
+
+const drawScore = () => {
+  ctx.strokeStyle = "white";
+  ctx.font = "60px arial";
+  ctx.textAlign = "right";
+  ctx.fillText(gameState.score.player1, GAME_WIDTH / 2 - 20, 60);
+  ctx.textAlign = "left";
+  ctx.fillText(gameState.score.player2, GAME_WIDTH / 2 + 20, 60);
+};
+
+const drawTitle = () => {
+  ctx.fillStyle = "white";
+  ctx.font = "30px arial";
+  ctx.textAlign = "left";
+  ctx.fillText("AMAZING TABLE TENNIS GAME", 60, 80);
 };
 
 const drawBall = () => {
@@ -126,43 +189,101 @@ const drawBat = (batDirection) => {
   }
 };
 
+const resetBall = () => {
+  // console.log("reset ball");
+  gameState.ball.paused = false;
+  gameState.ball.x = INITIAL_BALL_STATE.x;
+  gameState.ball.y = randomiseBallLocation()[0];
+  gameState.ball.angle = randomiseBallLocation()[1];
+  gameState.ball.velocity = INITIAL_BALL_STATE.velocity;
+};
+
+const checkScores = () => {
+  if (gameState.score.player1 >= WIN_SCORE) {
+    stopAnimation();
+    showEndScreen();
+    gameState.phase = PHASE.END;
+    resultText.innerHTML = "YOU WIN!!!";
+  } else if (gameState.score.player2 >= WIN_SCORE) {
+    stopAnimation();
+    showEndScreen();
+    gameState.phase = PHASE.END;
+    resultText.innerHTML = "YOU LOSE!!!";
+  }
+};
+
 const collisionDetection = () => {
-  // if (gameState.batLeft.y > GAME_HEIGHT || gameState.batLeft.y < 0) {
-  //   gameState.batLeft.speed = -gameState.batLeft.speed;
-  // }
-  // if (gameState.batRight.y > GAME_HEIGHT || gameState.batRight.y < 0) {
-  //   gameState.batRight.speed = -gameState.batRight.speed;
-  // }
-  if (gameState.ball.x < 0 || gameState.ball.x > GAME_WIDTH) {
-    gameState.ball.x = INITIAL_BALL_STATE.x;
-    gameState.ball.y = randomiseBallLocation()[0];
-    gameState.ball.angle = randomiseBallLocation()[1];
-    gameState.ball.velocity = INITIAL_BALL_STATE.velocity;
-  }
-  if (gameState.ball.y > GAME_HEIGHT - 10 || gameState.ball.y < 10) {
-    gameState.ball.velocity = -gameState.ball.velocity;
-    gameState.ball.angle = -gameState.ball.angle;
-  }
-  if (
-    gameState.ball.x < gameState.batLeft.x + BAT_WIDTH &&
-    gameState.ball.x > gameState.batLeft.x &&
-    gameState.ball.y < gameState.batLeft.y + BAT_HEIGHT &&
-    gameState.ball.y > gameState.batLeft.y
-  ) {
-    gameState.ball.velocity = -gameState.ball.velocity;
-  }
-  if (
-    gameState.ball.x < gameState.batRight.x + BAT_WIDTH &&
-    gameState.ball.x > gameState.batRight.x &&
-    gameState.ball.y < gameState.batRight.y + BAT_HEIGHT &&
-    gameState.ball.y > gameState.batRight.y
-  ) {
-    gameState.ball.velocity = -gameState.ball.velocity;
+  if (gameState.phase == PHASE.GAME) {
+    // if (gameState.batLeft.y > GAME_HEIGHT || gameState.batLeft.y < 0) {
+    //   gameState.batLeft.speed = -gameState.batLeft.speed;
+    // }
+    // if (gameState.batRight.y > GAME_HEIGHT || gameState.batRight.y < 0) {
+    //   gameState.batRight.speed = -gameState.batRight.speed;
+    // }
+    if (gameState.ball.x < 0 || gameState.ball.x > GAME_WIDTH) {
+      // BALL MOVES OUTSIDE LEFT OR RIGHT
+      if (gameState.ball.x < 0 && !gameState.ball.paused) {
+        gameState.score.player2 += 1;
+        gameState.ball.paused = true;
+        playBlip();
+        makeDelay(1000, resetBall);
+      }
+      if (gameState.ball.x > GAME_WIDTH && !gameState.ball.paused) {
+        gameState.score.player1 += 1;
+        gameState.ball.paused = true;
+        playBlip();
+        makeDelay(1000, resetBall);
+      }
+    }
+    if (gameState.ball.y > GAME_HEIGHT - 10 || gameState.ball.y < 10) {
+      // BALL BOUNCES OFF TOP OR BOTTOM
+      playBlip();
+      gameState.ball.velocity = -gameState.ball.velocity;
+      gameState.ball.angle = -gameState.ball.angle;
+    }
+    if (
+      // BALL HITS LEFT BAT
+      gameState.ball.x < gameState.batLeft.x + BAT_WIDTH &&
+      gameState.ball.x > gameState.batLeft.x &&
+      gameState.ball.y < gameState.batLeft.y + BAT_HEIGHT &&
+      gameState.ball.y > gameState.batLeft.y
+    ) {
+      playBlip();
+      gameState.ball.velocity = -gameState.ball.velocity;
+    }
+    if (
+      // BALL HITS RIGHT BAT
+      gameState.ball.x < gameState.batRight.x + BAT_WIDTH &&
+      gameState.ball.x > gameState.batRight.x &&
+      gameState.ball.y < gameState.batRight.y + BAT_HEIGHT &&
+      gameState.ball.y > gameState.batRight.y
+    ) {
+      playBlip();
+      gameState.ball.velocity = -gameState.ball.velocity;
+    }
+
+    // console.log(gameState.ball.velocity);
+    // console.log(gameState.ball.angle);
+    if (
+      gameState.ball.dx > 0 &&
+      gameState.ball.dy < 0 &&
+      gameState.batRight.y > gameState.ball.y
+    ) {
+      gameState.batRight.speed = -INITIAL_RIGHT_BAT_STATE.speed;
+    } else if (
+      gameState.ball.dx > 0 &&
+      gameState.ball.dy > 0 &&
+      gameState.batRight.y < gameState.ball.y
+    ) {
+      gameState.batRight.speed = INITIAL_RIGHT_BAT_STATE.speed;
+    }
+
+    checkScores();
   }
 };
 
 const resetElements = () => {
-  console.log("reset");
+  // console.log("reset");
   gameState = cloneDeep(makeInitialGameState());
 };
 
@@ -171,43 +292,91 @@ const drawBackground = () => {
   ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 };
 
-const moveElements = () => {
-  const [dx, dy] = getDisplacement(
-    gameState.ball.velocity,
-    gameState.ball.angle
-  );
-  gameState.ball.x = gameState.ball.x + dx;
-  gameState.ball.y = gameState.ball.y + dy;
+const makeDelay = (timeDelay, fn) => {
+  setTimeout(() => {
+    fn();
+  }, timeDelay);
+};
 
-  gameState.batLeft.y = gameState.batLeft.y + gameState.batLeft.speed;
-  gameState.batRight.y = gameState.batRight.y + gameState.batRight.speed;
+const moveElements = () => {
+  if (gameState.phase == PHASE.GAME) {
+    const [dx, dy] = getDisplacement(
+      gameState.ball.velocity,
+      gameState.ball.angle
+    );
+    gameState.ball.dx = dx;
+    gameState.ball.dy = dy;
+    gameState.ball.x = gameState.ball.x + dx;
+    gameState.ball.y = gameState.ball.y + dy;
+
+    if (
+      // STOP LEFT BAT GOING OFF SCREEN
+      BAT_HEIGHT + gameState.batLeft.y >
+      GAME_HEIGHT
+    ) {
+      gameState.batLeft.y = GAME_HEIGHT - BAT_HEIGHT;
+    } else if (gameState.batLeft.y < 0) {
+      gameState.batLeft.y = 0;
+    } else {
+      gameState.batLeft.y = gameState.batLeft.y + gameState.batLeft.speed;
+    }
+
+    if (
+      // STOP RIGHT BAT GOING OFF SCREEN
+      BAT_HEIGHT + gameState.batRight.y >
+      GAME_HEIGHT
+    ) {
+      gameState.batRight.y = GAME_HEIGHT - BAT_HEIGHT;
+    } else if (gameState.batRight.y < 0) {
+      gameState.batRight.y = 0;
+    } else {
+      gameState.batRight.y = gameState.batRight.y + gameState.batRight.speed;
+    }
+
+    gameState.batRight.y = gameState.batRight.y + gameState.batRight.speed;
+  }
 };
 
 const moveBat = (side, direction) => {
-  console.log("moveBat: ", side, direction);
+  // console.log("moveBat: ", side, direction);
+  // console.log("gameState.batLeft.y: ", gameState.batLeft.y);
+  // console.log("BAT_HEIGHT: ", BAT_HEIGHT);
+  // console.log("GAME_HEIGHT: ", GAME_HEIGHT);
   if (side === "LEFT") {
     if (direction === "DOWN") {
       gameState.batLeft.speed = INITIAL_LEFT_BAT_STATE.speed;
     } else if (direction === "UP") {
       gameState.batLeft.speed = -INITIAL_LEFT_BAT_STATE.speed;
     }
-  } else if (side === "RIGHT") {
-    if (direction === "DOWN") {
-      gameState.batRight.speed = INITIAL_RIGHT_BAT_STATE.speed;
-    } else if (direction === "UP") {
-      gameState.batRight.speed = -INITIAL_RIGHT_BAT_STATE.speed;
-    }
   }
+  // else if (side === "RIGHT") {
+  //   if (direction === "DOWN") {
+  //     gameState.batRight.speed = INITIAL_RIGHT_BAT_STATE.speed;
+  //   } else if (direction === "UP") {
+  //     gameState.batRight.speed = -INITIAL_RIGHT_BAT_STATE.speed;
+  //   }
+  // }
 };
 
 const stopBat = ({ key }) => {
-  if (key === "q" || "a") {
+  if (key === INPUT.DOWN) {
+    gameState.batLeft.downPressed = false;
+  } else if (key === INPUT.UP) {
+    gameState.batLeft.upPressed = false;
+  }
+  if (!gameState.batLeft.upPressed && !gameState.batLeft.downPressed) {
     gameState.batLeft.speed = 0;
   }
 
-  if (key === "p" || "l") {
-    gameState.batRight.speed = 0;
-  }
+  // if (key === "p" || "l") {
+  //   gameState.batRight.speed = 0;
+  // }
+};
+
+const drawStartElements = () => {
+  clearCanvas();
+  drawBackground();
+  drawTitle();
 };
 
 const drawGameElements = () => {
@@ -217,6 +386,7 @@ const drawGameElements = () => {
   drawBall();
   drawBat(BAT_SIDE.left);
   drawBat(BAT_SIDE.right);
+  drawScore();
 };
 
 const gameLoop = () => {
@@ -229,11 +399,12 @@ const gameLoop = () => {
 const init = () => {
   gameCanvas = document.getElementById("game") as HTMLCanvasElement;
   ctx = gameCanvas.getContext("2d");
+  drawStartElements();
+  gameState.phase = PHASE.GAME;
+  if (!animationRequest) {
+    startAnimation();
+  }
 };
-
-window.addEventListener("load", () => {
-  init();
-});
 
 const startAnimation = () => {
   // console.log("start animation");
@@ -246,34 +417,63 @@ const stopAnimation = () => {
   cancelAnimationFrame(animationRequest);
 };
 
-const startButton = document.querySelector("#startButton");
-const stopButton = document.querySelector("#stopButton");
-
 const detectKeyPress = ({ key }) => {
-  if (key === "q") {
-    moveBat("LEFT", "UP");
-  } else if (key === "a") {
-    moveBat("LEFT", "DOWN");
-  } else if (key === "p") {
-    moveBat("RIGHT", "UP");
-  } else if (key === "l") {
-    moveBat("RIGHT", "DOWN");
+  if (gameState.phase == PHASE.GAME) {
+    if (key === INPUT.UP) {
+      moveBat("LEFT", "UP");
+      gameState.batLeft.upPressed = true;
+    } else if (key === INPUT.DOWN) {
+      moveBat("LEFT", "DOWN");
+      gameState.batLeft.downPressed = true;
+    } else if (key === "p") {
+      moveBat("RIGHT", "UP");
+      gameState.batRight.downPressed = true;
+    } else if (key === "l") {
+      moveBat("RIGHT", "DOWN");
+      gameState.batRight.downPressed = true;
+    }
   }
 };
 
 document.addEventListener("keydown", (e) => {
-  // console.log(e);
+  // console.log("key down", e);
   detectKeyPress(e);
 });
 document.addEventListener("keyup", (e) => {
-  // console.log(e);
+  // console.log("key up", e);
   stopBat(e);
 });
 
-startButton.addEventListener("click", () => {
-  startAnimation();
+const hideStartScreen = () => {
+  startScreen.classList.add("hide");
+};
+
+const showStartScreen = () => {
+  startScreen.classList.remove("hide");
+};
+
+const hideEndScreen = () => {
+  endScreen.classList.add("hide");
+};
+
+const showEndScreen = () => {
+  endScreen.classList.remove("hide");
+};
+
+const startButton = document.getElementsByClassName("startButton")[0];
+const restartButton = document.getElementsByClassName("restartButton")[0];
+const startScreen = document.getElementById("startScreen");
+const endScreen = document.getElementById("endScreen");
+const resultText = document.getElementById("resultText");
+
+startButton.addEventListener("mousedown", (e) => {
+  // console.log("start");
+  init();
+  hideStartScreen();
 });
 
-stopButton.addEventListener("click", () => {
-  stopAnimation();
+restartButton.addEventListener("mousedown", (e) => {
+  // console.log("restart");
+  init();
+  hideEndScreen();
 });

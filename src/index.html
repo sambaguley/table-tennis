@@ -8,8 +8,18 @@
   </head>
   <body>
     <canvas id="game" width="600" height="400"></canvas>
-    <button id="startButton">START</button>
-    <button id="stopButton">STOP</button>
+    <div class="infoScreen" id="startScreen">
+      <h1>AMAZING TABLE TENNIS GAME</h1>
+      <p id="introText">
+        Press "q" to move bat up and "a" to move bat down. Score 11 points to
+        win.
+      </p>
+      <button class="startButton">START</button>
+    </div>
+    <div class="infoScreen hide" id="endScreen">
+      <h1 id="resultText">RESULT</h1>
+      <button class="restartButton">RESTART</button>
+    </div>
     <script src="./gameControl.ts"></script>
   </body>
 </html>
