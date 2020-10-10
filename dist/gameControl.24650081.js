@@ -2974,13 +2974,16 @@ module.exports = cloneDeep;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.VERSION_NUMBER = exports.PHASE = exports.INPUT = exports.COLOURS = exports.WIN_SCORE = exports.BAT_WIDTH = exports.BAT_HEIGHT = exports.BALL_RADIUS = exports.BAT_SIDE_MARGIN = exports.GAME_HEIGHT = exports.GAME_WIDTH = exports.BAT_SIDE = void 0;
-var BAT_SIDE;
+exports.HTML_ELEMENTS = exports.PHASE = exports.INPUT = exports.FONTS = exports.COLOURS = exports.WIN_SCORE = exports.BAT_WIDTH = exports.BAT_HEIGHT = exports.BALL_RADIUS = exports.BAT_SIDE_MARGIN = exports.GAME_HEIGHT = exports.GAME_WIDTH = exports.DIRECTION = exports.VERSION_NUMBER = void 0;
+exports.VERSION_NUMBER = "1.5";
+var DIRECTION;
 
-(function (BAT_SIDE) {
-  BAT_SIDE["left"] = "LEFT";
-  BAT_SIDE["right"] = "RIGHT";
-})(BAT_SIDE = exports.BAT_SIDE || (exports.BAT_SIDE = {}));
+(function (DIRECTION) {
+  DIRECTION["Up"] = "UP";
+  DIRECTION["Down"] = "DOWN";
+  DIRECTION["Left"] = "LEFT";
+  DIRECTION["Right"] = "RIGHT";
+})(DIRECTION = exports.DIRECTION || (exports.DIRECTION = {}));
 
 exports.GAME_WIDTH = 600;
 exports.GAME_HEIGHT = 400;
@@ -2991,7 +2994,14 @@ exports.BAT_WIDTH = 8;
 exports.WIN_SCORE = 11;
 exports.COLOURS = {
   BACKGROUND: "#333",
-  MAIN: "#CCC"
+  MAIN: "#CCC",
+  white: "white"
+};
+exports.FONTS = {
+  TITLE: "30px arial",
+  SCORE: "60px arial",
+  BODY: "",
+  SMALL: "12px arial"
 };
 exports.INPUT = {
   UP: "q",
@@ -3002,7 +3012,24 @@ exports.PHASE = {
   GAME: "GAME",
   END: "END"
 };
-exports.VERSION_NUMBER = "1.3";
+exports.HTML_ELEMENTS = {
+  START_BUTTON: "startButton",
+  RESTART_BUTTON: "restartButton",
+  START_SCREEN: "startScreen",
+  END_SCREEN: "endScreen",
+  RESULT_TEXT: "resultText"
+};
+},{}],"gameText.ts":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.TEXT = void 0;
+exports.TEXT = {
+  WIN: "YOU WIN!!!",
+  LOSE: "YOU LOSE!!!"
+};
 },{}],"gameControl.ts":[function(require,module,exports) {
 "use strict";
 
@@ -3020,6 +3047,8 @@ var cloneDeep_1 = __importDefault(require("lodash/cloneDeep"));
 
 var gameConstants_1 = require("./gameConstants");
 
+var gameText_1 = require("./gameText");
+
 var animationRequest;
 var gameCanvas;
 var ctx;
@@ -3032,8 +3061,9 @@ var getDisplacement = function getDisplacement(speed, angle) {
 };
 
 var randomiseBallAngle = function randomiseBallAngle() {
-  var newAngle = 4 + Math.random() * 1;
-  return newAngle;
+  var minAngle = 4;
+  var angleSpread = 1;
+  return minAngle + Math.random() * angleSpread;
 };
 
 var INITIAL_BALL_STATE = {
@@ -3059,7 +3089,7 @@ var INITIAL_RIGHT_BAT_STATE = {
   speed: 3
 };
 
-var makeInitialGameState = function makeInitialGameState() {
+var initGameState = function initGameState() {
   var angle = randomiseBallAngle();
   blip = new Audio("./blip.wav");
   return {
@@ -3097,7 +3127,7 @@ var makeInitialGameState = function makeInitialGameState() {
   };
 };
 
-var gameState = cloneDeep_1.default(makeInitialGameState());
+var gameState = cloneDeep_1.default(initGameState());
 
 var clearCanvas = function clearCanvas() {
   ctx.clearRect(0, 0, gameConstants_1.GAME_WIDTH, gameConstants_1.GAME_HEIGHT);
@@ -3117,8 +3147,8 @@ var drawCenterLine = function drawCenterLine() {
 };
 
 var drawScore = function drawScore() {
-  ctx.strokeStyle = "white";
-  ctx.font = "60px arial";
+  ctx.strokeStyle = gameConstants_1.COLOURS.white;
+  ctx.font = gameConstants_1.FONTS.SCORE;
   ctx.textAlign = "right";
   ctx.fillText(gameState.score.player1, gameConstants_1.GAME_WIDTH / 2 - 20, 60);
   ctx.textAlign = "left";
@@ -3126,15 +3156,15 @@ var drawScore = function drawScore() {
 };
 
 var drawTitle = function drawTitle() {
-  ctx.fillStyle = "white";
-  ctx.font = "30px arial";
+  ctx.fillStyle = gameConstants_1.COLOURS.white;
+  ctx.font = gameConstants_1.FONTS.TITLE;
   ctx.textAlign = "left";
   ctx.fillText("AMAZING TABLE TENNIS GAME", 60, 80);
 };
 
 var drawVersionNumber = function drawVersionNumber() {
-  ctx.fillStyle = "white";
-  ctx.font = "12px arial";
+  ctx.fillStyle = gameConstants_1.COLOURS.white;
+  ctx.font = gameConstants_1.FONTS.SMALL;
   ctx.textAlign = "left";
   ctx.fillText("Version: " + gameConstants_1.VERSION_NUMBER, 5, 15);
 };
@@ -3148,7 +3178,7 @@ var drawBall = function drawBall() {
 var drawBat = function drawBat(batDirection) {
   ctx.fillStyle = gameConstants_1.COLOURS.MAIN;
 
-  if (batDirection === gameConstants_1.BAT_SIDE.left) {
+  if (batDirection === gameConstants_1.DIRECTION.Left) {
     ctx.fillRect(gameState.batLeft.x, gameState.batLeft.y, gameConstants_1.BAT_WIDTH, gameConstants_1.BAT_HEIGHT);
   } else {
     ctx.fillRect(gameState.batRight.x, gameState.batRight.y, gameConstants_1.BAT_WIDTH, gameConstants_1.BAT_HEIGHT);
@@ -3156,7 +3186,6 @@ var drawBat = function drawBat(batDirection) {
 };
 
 var resetBall = function resetBall() {
-  // console.log("reset ball");
   gameState.ball.paused = false;
   gameState.ball.x = INITIAL_BALL_STATE.x;
   gameState.ball.y = gameConstants_1.GAME_HEIGHT / 2;
@@ -3168,18 +3197,21 @@ var checkScores = function checkScores() {
     stopAnimation();
     showEndScreen();
     gameState.phase = gameConstants_1.PHASE.END;
-    resultText.innerHTML = "YOU WIN!!!";
+    resultText.innerHTML = gameText_1.TEXT.WIN;
   } else if (gameState.score.player2 >= gameConstants_1.WIN_SCORE) {
     stopAnimation();
     showEndScreen();
     gameState.phase = gameConstants_1.PHASE.END;
-    resultText.innerHTML = "YOU LOSE!!!";
+    resultText.innerHTML = gameText_1.TEXT.LOSE;
   }
 };
 
 var randomAngle = function randomAngle() {
-  var newAngle = Math.random() * 0.5 - 0.25;
-  return newAngle;
+  return Math.random() * 0.5 - 0.25;
+};
+
+var reflectAngle = function reflectAngle() {
+  return gameState.ball.angle + Math.PI + randomAngle();
 };
 
 var collisionDetection = function collisionDetection() {
@@ -3213,22 +3245,20 @@ var collisionDetection = function collisionDetection() {
 
     if (gameState.ball.y > gameConstants_1.GAME_HEIGHT - 10 || gameState.ball.y < 10) {
       // BALL BOUNCES OFF TOP OR BOTTOM
-      playBlip(); // gameState.ball.speed = -gameState.ball.speed;
-
+      playBlip();
       gameState.ball.angle = gameState.ball.angle + Math.PI / 2;
     }
 
     if ( // BALL HITS LEFT BAT
     gameState.ball.x < gameState.batLeft.x + gameConstants_1.BAT_WIDTH && gameState.ball.x > gameState.batLeft.x && gameState.ball.y < gameState.batLeft.y + gameConstants_1.BAT_HEIGHT && gameState.ball.y > gameState.batLeft.y) {
       playBlip();
-      gameState.ball.angle = gameState.ball.angle + Math.PI + randomAngle();
+      gameState.ball.angle = reflectAngle();
     }
 
     if ( // BALL HITS RIGHT BAT
     gameState.ball.x < gameState.batRight.x + gameConstants_1.BAT_WIDTH && gameState.ball.x > gameState.batRight.x && gameState.ball.y < gameState.batRight.y + gameConstants_1.BAT_HEIGHT && gameState.ball.y > gameState.batRight.y) {
-      playBlip(); // gameState.ball.speed = -gameState.ball.speed;
-
-      gameState.ball.angle = gameState.ball.angle + Math.PI + randomAngle();
+      playBlip();
+      gameState.ball.angle = reflectAngle();
     } // OPPONENT BASIC AI
 
 
@@ -3243,8 +3273,7 @@ var collisionDetection = function collisionDetection() {
 };
 
 var resetElements = function resetElements() {
-  // console.log("reset");
-  gameState = cloneDeep_1.default(makeInitialGameState());
+  gameState = cloneDeep_1.default(initGameState());
 };
 
 var drawBackground = function drawBackground() {
@@ -3292,24 +3321,13 @@ var moveElements = function moveElements() {
 };
 
 var moveBat = function moveBat(side, direction) {
-  // console.log("moveBat: ", side, direction);
-  // console.log("gameState.batLeft.y: ", gameState.batLeft.y);
-  // console.log("BAT_HEIGHT: ", BAT_HEIGHT);
-  // console.log("GAME_HEIGHT: ", GAME_HEIGHT);
-  if (side === "LEFT") {
-    if (direction === "DOWN") {
+  if (side === gameConstants_1.DIRECTION.Left) {
+    if (direction === gameConstants_1.DIRECTION.Down) {
       gameState.batLeft.speed = INITIAL_LEFT_BAT_STATE.speed;
-    } else if (direction === "UP") {
+    } else if (direction === gameConstants_1.DIRECTION.Up) {
       gameState.batLeft.speed = -INITIAL_LEFT_BAT_STATE.speed;
     }
-  } // else if (side === "RIGHT") {
-  //   if (direction === "DOWN") {
-  //     gameState.batRight.speed = INITIAL_RIGHT_BAT_STATE.speed;
-  //   } else if (direction === "UP") {
-  //     gameState.batRight.speed = -INITIAL_RIGHT_BAT_STATE.speed;
-  //   }
-  // }
-
+  }
 };
 
 var stopBat = function stopBat(_a) {
@@ -3323,10 +3341,7 @@ var stopBat = function stopBat(_a) {
 
   if (!gameState.batLeft.upPressed && !gameState.batLeft.downPressed) {
     gameState.batLeft.speed = 0;
-  } // if (key === "p" || "l") {
-  //   gameState.batRight.speed = 0;
-  // }
-
+  }
 };
 
 var drawStartElements = function drawStartElements() {
@@ -3340,8 +3355,8 @@ var drawGameElements = function drawGameElements() {
   drawBackground();
   drawCenterLine();
   drawBall();
-  drawBat(gameConstants_1.BAT_SIDE.left);
-  drawBat(gameConstants_1.BAT_SIDE.right);
+  drawBat(gameConstants_1.DIRECTION.Left);
+  drawBat(gameConstants_1.DIRECTION.Right);
   drawScore();
   drawVersionNumber();
 };
@@ -3365,12 +3380,10 @@ var init = function init() {
 };
 
 var startAnimation = function startAnimation() {
-  // console.log("start animation");
   animationRequest = requestAnimationFrame(gameLoop);
 };
 
 var stopAnimation = function stopAnimation() {
-  // console.log("stop animation");
   resetElements();
   cancelAnimationFrame(animationRequest);
 };
@@ -3380,36 +3393,24 @@ var detectKeyPress = function detectKeyPress(_a) {
 
   if (gameState.phase == gameConstants_1.PHASE.GAME) {
     if (key === gameConstants_1.INPUT.UP) {
-      moveBat("LEFT", "UP");
+      moveBat(gameConstants_1.DIRECTION.Left, gameConstants_1.DIRECTION.Up);
       gameState.batLeft.upPressed = true;
     } else if (key === gameConstants_1.INPUT.DOWN) {
-      moveBat("LEFT", "DOWN");
+      moveBat(gameConstants_1.DIRECTION.Left, gameConstants_1.DIRECTION.Down);
       gameState.batLeft.downPressed = true;
-    } else if (key === "p") {
-      moveBat("RIGHT", "UP");
-      gameState.batRight.downPressed = true;
-    } else if (key === "l") {
-      moveBat("RIGHT", "DOWN");
-      gameState.batRight.downPressed = true;
     }
   }
 };
 
 document.addEventListener("keydown", function (e) {
-  // console.log("key down", e);
   detectKeyPress(e);
 });
 document.addEventListener("keyup", function (e) {
-  // console.log("key up", e);
   stopBat(e);
 });
 
 var hideStartScreen = function hideStartScreen() {
   startScreen.classList.add("hide");
-};
-
-var showStartScreen = function showStartScreen() {
-  startScreen.classList.remove("hide");
 };
 
 var hideEndScreen = function hideEndScreen() {
@@ -3420,22 +3421,20 @@ var showEndScreen = function showEndScreen() {
   endScreen.classList.remove("hide");
 };
 
-var startButton = document.getElementsByClassName("startButton")[0];
-var restartButton = document.getElementsByClassName("restartButton")[0];
-var startScreen = document.getElementById("startScreen");
-var endScreen = document.getElementById("endScreen");
-var resultText = document.getElementById("resultText");
+var startButton = document.getElementsByClassName(gameConstants_1.HTML_ELEMENTS.START_BUTTON)[0];
+var restartButton = document.getElementsByClassName(gameConstants_1.HTML_ELEMENTS.RESTART_BUTTON)[0];
+var startScreen = document.getElementById(gameConstants_1.HTML_ELEMENTS.START_SCREEN);
+var endScreen = document.getElementById(gameConstants_1.HTML_ELEMENTS.END_SCREEN);
+var resultText = document.getElementById(gameConstants_1.HTML_ELEMENTS.RESULT_TEXT);
 startButton.addEventListener("mousedown", function (e) {
-  // console.log("start");
   init();
   hideStartScreen();
 });
 restartButton.addEventListener("mousedown", function (e) {
-  // console.log("restart");
   init();
   hideEndScreen();
 });
-},{"lodash/cloneDeep":"../node_modules/lodash/cloneDeep.js","./gameConstants":"gameConstants.ts"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"lodash/cloneDeep":"../node_modules/lodash/cloneDeep.js","./gameConstants":"gameConstants.ts","./gameText":"gameText.ts"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;

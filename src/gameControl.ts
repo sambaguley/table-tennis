@@ -1,6 +1,6 @@
 import cloneDeep from "lodash/cloneDeep";
 import {
-  BAT_SIDE,
+  DIRECTION,
   GAME_WIDTH,
   GAME_HEIGHT,
   BAT_SIDE_MARGIN,
@@ -11,22 +11,27 @@ import {
   PHASE,
   COLOURS,
   VERSION_NUMBER,
+  FONTS,
+  HTML_ELEMENTS,
 } from "./gameConstants";
+
+import { TEXT } from "./gameText";
 
 let animationRequest;
 let gameCanvas;
 let ctx;
 let blip;
 
-const getDisplacement = (speed, angle) => {
+const getDisplacement = (speed: number, angle: number): [number, number] => {
   const dy = speed * Math.cos(angle);
   const dx = speed * Math.sin(angle);
   return [dx, dy];
 };
 
-const randomiseBallAngle = () => {
-  const newAngle = 4 + Math.random() * 1;
-  return newAngle;
+const randomiseBallAngle = (): number => {
+  const minAngle = 4;
+  const angleSpread = 1;
+  return minAngle + Math.random() * angleSpread;
 };
 
 const INITIAL_BALL_STATE = {
@@ -54,7 +59,7 @@ const INITIAL_RIGHT_BAT_STATE = {
   speed: 3,
 };
 
-const makeInitialGameState = () => {
+const initGameState = () => {
   const angle = randomiseBallAngle();
   blip = new Audio("./blip.wav");
   return {
@@ -92,7 +97,7 @@ const makeInitialGameState = () => {
   };
 };
 
-let gameState = cloneDeep(makeInitialGameState());
+let gameState = cloneDeep(initGameState());
 
 const clearCanvas = () => {
   ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
@@ -102,7 +107,7 @@ const playBlip = () => {
   blip.play();
 };
 
-const drawCenterLine = () => {
+const drawCenterLine = (): void => {
   ctx.strokeStyle = COLOURS.MAIN;
   ctx.setLineDash([10, 10]);
   ctx.beginPath();
@@ -111,30 +116,30 @@ const drawCenterLine = () => {
   ctx.stroke();
 };
 
-const drawScore = () => {
-  ctx.strokeStyle = "white";
-  ctx.font = "60px arial";
+const drawScore = (): void => {
+  ctx.strokeStyle = COLOURS.white;
+  ctx.font = FONTS.SCORE;
   ctx.textAlign = "right";
   ctx.fillText(gameState.score.player1, GAME_WIDTH / 2 - 20, 60);
   ctx.textAlign = "left";
   ctx.fillText(gameState.score.player2, GAME_WIDTH / 2 + 20, 60);
 };
 
-const drawTitle = () => {
-  ctx.fillStyle = "white";
-  ctx.font = "30px arial";
+const drawTitle = (): void => {
+  ctx.fillStyle = COLOURS.white;
+  ctx.font = FONTS.TITLE;
   ctx.textAlign = "left";
   ctx.fillText("AMAZING TABLE TENNIS GAME", 60, 80);
 };
 
-const drawVersionNumber = () => {
-  ctx.fillStyle = "white";
-  ctx.font = "12px arial";
+const drawVersionNumber = (): void => {
+  ctx.fillStyle = COLOURS.white;
+  ctx.font = FONTS.SMALL;
   ctx.textAlign = "left";
   ctx.fillText(`Version: ${VERSION_NUMBER}`, 5, 15);
 };
 
-const drawBall = () => {
+const drawBall = (): void => {
   ctx.fillStyle = COLOURS.MAIN;
   ctx.fillRect(
     gameState.ball.x,
@@ -145,9 +150,9 @@ const drawBall = () => {
   ctx.fill();
 };
 
-const drawBat = (batDirection) => {
+const drawBat = (batDirection): void => {
   ctx.fillStyle = COLOURS.MAIN;
-  if (batDirection === BAT_SIDE.left) {
+  if (batDirection === DIRECTION.Left) {
     ctx.fillRect(
       gameState.batLeft.x,
       gameState.batLeft.y,
@@ -164,34 +169,33 @@ const drawBat = (batDirection) => {
   }
 };
 
-const resetBall = () => {
-  // console.log("reset ball");
+const resetBall = (): void => {
   gameState.ball.paused = false;
   gameState.ball.x = INITIAL_BALL_STATE.x;
   gameState.ball.y = GAME_HEIGHT / 2;
   gameState.ball.angle = randomiseBallAngle();
 };
 
-const checkScores = () => {
+const checkScores = (): void => {
   if (gameState.score.player1 >= WIN_SCORE) {
     stopAnimation();
     showEndScreen();
     gameState.phase = PHASE.END;
-    resultText.innerHTML = "YOU WIN!!!";
+    resultText.innerHTML = TEXT.WIN;
   } else if (gameState.score.player2 >= WIN_SCORE) {
     stopAnimation();
     showEndScreen();
     gameState.phase = PHASE.END;
-    resultText.innerHTML = "YOU LOSE!!!";
+    resultText.innerHTML = TEXT.LOSE;
   }
 };
 
-const randomAngle = () => {
-  const newAngle = Math.random() * 0.5 - 0.25;
-  return newAngle;
-};
+const randomAngle = (): number => Math.random() * 0.5 - 0.25;
 
-const collisionDetection = () => {
+const reflectAngle = (): number =>
+  gameState.ball.angle + Math.PI + randomAngle();
+
+const collisionDetection = (): void => {
   if (gameState.phase == PHASE.GAME) {
     if (gameState.ball.x < 0 || gameState.ball.x > GAME_WIDTH) {
       // BALL MOVES OUTSIDE LEFT OR RIGHT
@@ -220,7 +224,6 @@ const collisionDetection = () => {
     if (gameState.ball.y > GAME_HEIGHT - 10 || gameState.ball.y < 10) {
       // BALL BOUNCES OFF TOP OR BOTTOM
       playBlip();
-      // gameState.ball.speed = -gameState.ball.speed;
       gameState.ball.angle = gameState.ball.angle + Math.PI / 2;
     }
     if (
@@ -231,7 +234,7 @@ const collisionDetection = () => {
       gameState.ball.y > gameState.batLeft.y
     ) {
       playBlip();
-      gameState.ball.angle = gameState.ball.angle + Math.PI + randomAngle();
+      gameState.ball.angle = reflectAngle();
     }
     if (
       // BALL HITS RIGHT BAT
@@ -241,8 +244,7 @@ const collisionDetection = () => {
       gameState.ball.y > gameState.batRight.y
     ) {
       playBlip();
-      // gameState.ball.speed = -gameState.ball.speed;
-      gameState.ball.angle = gameState.ball.angle + Math.PI + randomAngle();
+      gameState.ball.angle = reflectAngle();
     }
 
     // OPPONENT BASIC AI
@@ -259,28 +261,26 @@ const collisionDetection = () => {
     ) {
       gameState.batRight.speed = INITIAL_RIGHT_BAT_STATE.speed;
     }
-
     checkScores();
   }
 };
 
-const resetElements = () => {
-  // console.log("reset");
-  gameState = cloneDeep(makeInitialGameState());
+const resetElements = (): void => {
+  gameState = cloneDeep(initGameState());
 };
 
-const drawBackground = () => {
+const drawBackground = (): void => {
   ctx.fillStyle = COLOURS.BACKGROUND;
   ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 };
 
-const makeDelay = (timeDelay, fn) => {
+const makeDelay = (timeDelay: number, fn: () => void): void => {
   setTimeout(() => {
     fn();
   }, timeDelay);
 };
 
-const moveElements = () => {
+const moveElements = (): void => {
   if (gameState.phase == PHASE.GAME) {
     const [dx, dy] = getDisplacement(
       gameState.ball.speed,
@@ -319,28 +319,17 @@ const moveElements = () => {
   }
 };
 
-const moveBat = (side, direction) => {
-  // console.log("moveBat: ", side, direction);
-  // console.log("gameState.batLeft.y: ", gameState.batLeft.y);
-  // console.log("BAT_HEIGHT: ", BAT_HEIGHT);
-  // console.log("GAME_HEIGHT: ", GAME_HEIGHT);
-  if (side === "LEFT") {
-    if (direction === "DOWN") {
+const moveBat = (side: DIRECTION, direction: DIRECTION): void => {
+  if (side === DIRECTION.Left) {
+    if (direction === DIRECTION.Down) {
       gameState.batLeft.speed = INITIAL_LEFT_BAT_STATE.speed;
-    } else if (direction === "UP") {
+    } else if (direction === DIRECTION.Up) {
       gameState.batLeft.speed = -INITIAL_LEFT_BAT_STATE.speed;
     }
   }
-  // else if (side === "RIGHT") {
-  //   if (direction === "DOWN") {
-  //     gameState.batRight.speed = INITIAL_RIGHT_BAT_STATE.speed;
-  //   } else if (direction === "UP") {
-  //     gameState.batRight.speed = -INITIAL_RIGHT_BAT_STATE.speed;
-  //   }
-  // }
 };
 
-const stopBat = ({ key }) => {
+const stopBat = ({ key }: { key: string }): void => {
   if (key === INPUT.DOWN) {
     gameState.batLeft.downPressed = false;
   } else if (key === INPUT.UP) {
@@ -349,37 +338,33 @@ const stopBat = ({ key }) => {
   if (!gameState.batLeft.upPressed && !gameState.batLeft.downPressed) {
     gameState.batLeft.speed = 0;
   }
-
-  // if (key === "p" || "l") {
-  //   gameState.batRight.speed = 0;
-  // }
 };
 
-const drawStartElements = () => {
+const drawStartElements = (): void => {
   clearCanvas();
   drawBackground();
   drawTitle();
 };
 
-const drawGameElements = () => {
+const drawGameElements = (): void => {
   clearCanvas();
   drawBackground();
   drawCenterLine();
   drawBall();
-  drawBat(BAT_SIDE.left);
-  drawBat(BAT_SIDE.right);
+  drawBat(DIRECTION.Left);
+  drawBat(DIRECTION.Right);
   drawScore();
   drawVersionNumber();
 };
 
-const gameLoop = () => {
+const gameLoop = (): void => {
   moveElements();
   drawGameElements();
   collisionDetection();
   animationRequest = requestAnimationFrame(gameLoop);
 };
 
-const init = () => {
+const init = (): void => {
   gameCanvas = document.getElementById("game") as HTMLCanvasElement;
   ctx = gameCanvas.getContext("2d");
   drawStartElements();
@@ -389,74 +374,62 @@ const init = () => {
   }
 };
 
-const startAnimation = () => {
-  // console.log("start animation");
+const startAnimation = (): void => {
   animationRequest = requestAnimationFrame(gameLoop);
 };
 
-const stopAnimation = () => {
-  // console.log("stop animation");
+const stopAnimation = (): void => {
   resetElements();
   cancelAnimationFrame(animationRequest);
 };
 
-const detectKeyPress = ({ key }) => {
+const detectKeyPress = ({ key }: { key: string }): void => {
   if (gameState.phase == PHASE.GAME) {
     if (key === INPUT.UP) {
-      moveBat("LEFT", "UP");
+      moveBat(DIRECTION.Left, DIRECTION.Up);
       gameState.batLeft.upPressed = true;
     } else if (key === INPUT.DOWN) {
-      moveBat("LEFT", "DOWN");
+      moveBat(DIRECTION.Left, DIRECTION.Down);
       gameState.batLeft.downPressed = true;
-    } else if (key === "p") {
-      moveBat("RIGHT", "UP");
-      gameState.batRight.downPressed = true;
-    } else if (key === "l") {
-      moveBat("RIGHT", "DOWN");
-      gameState.batRight.downPressed = true;
     }
   }
 };
 
 document.addEventListener("keydown", (e) => {
-  // console.log("key down", e);
   detectKeyPress(e);
 });
 document.addEventListener("keyup", (e) => {
-  // console.log("key up", e);
   stopBat(e);
 });
 
-const hideStartScreen = () => {
+const hideStartScreen = (): void => {
   startScreen.classList.add("hide");
 };
 
-const showStartScreen = () => {
-  startScreen.classList.remove("hide");
-};
-
-const hideEndScreen = () => {
+const hideEndScreen = (): void => {
   endScreen.classList.add("hide");
 };
 
-const showEndScreen = () => {
+const showEndScreen = (): void => {
   endScreen.classList.remove("hide");
 };
 
-const startButton = document.getElementsByClassName("startButton")[0];
-const restartButton = document.getElementsByClassName("restartButton")[0];
-const startScreen = document.getElementById("startScreen");
-const endScreen = document.getElementById("endScreen");
-const resultText = document.getElementById("resultText");
+const startButton = document.getElementsByClassName(
+  HTML_ELEMENTS.START_BUTTON
+)[0];
+const restartButton = document.getElementsByClassName(
+  HTML_ELEMENTS.RESTART_BUTTON
+)[0];
+const startScreen = document.getElementById(HTML_ELEMENTS.START_SCREEN);
+const endScreen = document.getElementById(HTML_ELEMENTS.END_SCREEN);
+const resultText = document.getElementById(HTML_ELEMENTS.RESULT_TEXT);
 
 startButton.addEventListener("mousedown", (e) => {
-  // console.log("start");
   init();
   hideStartScreen();
 });
 
 restartButton.addEventListener("mousedown", (e) => {
-  // console.log("restart");
   init();
   hideEndScreen();
 });
