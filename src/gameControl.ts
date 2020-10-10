@@ -1,59 +1,43 @@
 import cloneDeep from "lodash/cloneDeep";
+import {
+  BAT_SIDE,
+  GAME_WIDTH,
+  GAME_HEIGHT,
+  BAT_SIDE_MARGIN,
+  BAT_HEIGHT,
+  BAT_WIDTH,
+  WIN_SCORE,
+  INPUT,
+  PHASE,
+  COLOURS,
+  VERSION_NUMBER,
+} from "./gameConstants";
 
 let animationRequest;
 let gameCanvas;
 let ctx;
+let blip;
 
-enum BAT_SIDE {
-  left = "LEFT",
-  right = "RIGHT",
-}
-
-const GAME_WIDTH = 600;
-const GAME_HEIGHT = 400;
-
-const BAT_SIDE_MARGIN = 20;
-const BALL_RADIUS = 10;
-const BAT_HEIGHT = 60;
-const BAT_WIDTH = 8;
-
-const WIN_SCORE = 11;
-
-var BLIP;
-
-const INPUT = {
-  UP: "q",
-  DOWN: "a",
-};
-
-const PHASE = {
-  START: "START",
-  GAME: "GAME",
-  END: "END",
-};
-
-const getDisplacement = (velocity, angle) => {
-  // Angles in radians;
-  const dy = velocity * Math.cos(angle);
-  const dx = velocity * Math.sin(angle);
+const getDisplacement = (speed, angle) => {
+  const dy = speed * Math.cos(angle);
+  const dx = speed * Math.sin(angle);
   return [dx, dy];
 };
 
-const randomiseBallLocation = () => {
-  const newYPosition = Math.random() * GAME_HEIGHT;
+const randomiseBallAngle = () => {
   const newAngle = 4 + Math.random() * 1;
-  // console.log("random angle: ", newAngle);
-  // console.log("random y pos: ", newYPosition);
-  return [newYPosition, newAngle];
+  return newAngle;
 };
 
 const INITIAL_BALL_STATE = {
   x: GAME_WIDTH / 2 - 5,
-  y: randomiseBallLocation()[0],
+  y: GAME_HEIGHT / 2,
   width: 10,
   height: 10,
-  velocity: 7,
-  angle: randomiseBallLocation()[1],
+  speed: 6,
+  acceleration: 0.2,
+  maxSpeed: 8,
+  angle: randomiseBallAngle(),
   dx: 0,
   dy: 0,
 };
@@ -70,20 +54,19 @@ const INITIAL_RIGHT_BAT_STATE = {
   speed: 3,
 };
 
-const BACKGROUND_COLOR = "#333";
-const MAIN_COLOR = "#CCC";
-
 const makeInitialGameState = () => {
-  const [ballY, angle] = randomiseBallLocation();
-  BLIP = new Audio("./blip.wav");
+  const angle = randomiseBallAngle();
+  blip = new Audio("./blip.wav");
   return {
     phase: PHASE.START,
     ball: {
       x: INITIAL_BALL_STATE.x,
-      y: ballY,
+      y: GAME_HEIGHT / 2,
       width: INITIAL_BALL_STATE.width,
       height: INITIAL_BALL_STATE.height,
-      velocity: INITIAL_BALL_STATE.velocity,
+      speed: INITIAL_BALL_STATE.speed,
+      acceleration: INITIAL_BALL_STATE.acceleration,
+      maxSpeed: INITIAL_BALL_STATE.maxSpeed,
       angle: angle,
       paused: false,
       dy: 0,
@@ -116,25 +99,11 @@ const clearCanvas = () => {
 };
 
 const playBlip = () => {
-  const soundPromise = BLIP.play();
-  // In browsers that don’t yet support this functionality,
-  // playPromise won’t be defined.
-  if (soundPromise !== undefined) {
-    soundPromise
-      .then(function () {
-        // console.log("PLAY SOUND");
-        // Automatic playback started!
-      })
-      .catch(function (error) {
-        console.log("Sound error: ", error);
-        // Automatic playback failed.
-        // Show a UI element to let the user manually start playback.
-      });
-  }
+  blip.play();
 };
 
 const drawCenterLine = () => {
-  ctx.strokeStyle = MAIN_COLOR;
+  ctx.strokeStyle = COLOURS.MAIN;
   ctx.setLineDash([10, 10]);
   ctx.beginPath();
   ctx.moveTo(GAME_WIDTH / 2, 0);
@@ -158,9 +127,15 @@ const drawTitle = () => {
   ctx.fillText("AMAZING TABLE TENNIS GAME", 60, 80);
 };
 
+const drawVersionNumber = () => {
+  ctx.fillStyle = "white";
+  ctx.font = "12px arial";
+  ctx.textAlign = "left";
+  ctx.fillText(`Version: ${VERSION_NUMBER}`, 5, 15);
+};
+
 const drawBall = () => {
-  ctx.fillStyle = MAIN_COLOR;
-  // ctx.arc(gameState.ball.x, gameState.ball.y, BALL_RADIUS, 0, 2 * Math.PI);
+  ctx.fillStyle = COLOURS.MAIN;
   ctx.fillRect(
     gameState.ball.x,
     gameState.ball.y,
@@ -171,7 +146,7 @@ const drawBall = () => {
 };
 
 const drawBat = (batDirection) => {
-  ctx.fillStyle = MAIN_COLOR;
+  ctx.fillStyle = COLOURS.MAIN;
   if (batDirection === BAT_SIDE.left) {
     ctx.fillRect(
       gameState.batLeft.x,
@@ -193,9 +168,8 @@ const resetBall = () => {
   // console.log("reset ball");
   gameState.ball.paused = false;
   gameState.ball.x = INITIAL_BALL_STATE.x;
-  gameState.ball.y = randomiseBallLocation()[0];
-  gameState.ball.angle = randomiseBallLocation()[1];
-  gameState.ball.velocity = INITIAL_BALL_STATE.velocity;
+  gameState.ball.y = GAME_HEIGHT / 2;
+  gameState.ball.angle = randomiseBallAngle();
 };
 
 const checkScores = () => {
@@ -212,34 +186,42 @@ const checkScores = () => {
   }
 };
 
+const randomAngle = () => {
+  const newAngle = Math.random() * 0.5 - 0.25;
+  return newAngle;
+};
+
 const collisionDetection = () => {
   if (gameState.phase == PHASE.GAME) {
-    // if (gameState.batLeft.y > GAME_HEIGHT || gameState.batLeft.y < 0) {
-    //   gameState.batLeft.speed = -gameState.batLeft.speed;
-    // }
-    // if (gameState.batRight.y > GAME_HEIGHT || gameState.batRight.y < 0) {
-    //   gameState.batRight.speed = -gameState.batRight.speed;
-    // }
     if (gameState.ball.x < 0 || gameState.ball.x > GAME_WIDTH) {
       // BALL MOVES OUTSIDE LEFT OR RIGHT
       if (gameState.ball.x < 0 && !gameState.ball.paused) {
+        if (gameState.ball.speed < gameState.ball.maxSpeed) {
+          gameState.ball.speed =
+            gameState.ball.speed + gameState.ball.acceleration;
+        }
         gameState.score.player2 += 1;
         gameState.ball.paused = true;
         playBlip();
         makeDelay(1000, resetBall);
       }
       if (gameState.ball.x > GAME_WIDTH && !gameState.ball.paused) {
+        if (gameState.ball.speed < gameState.ball.maxSpeed) {
+          gameState.ball.speed =
+            gameState.ball.speed + gameState.ball.acceleration;
+        }
         gameState.score.player1 += 1;
         gameState.ball.paused = true;
         playBlip();
         makeDelay(1000, resetBall);
       }
+      console.log("speed: ", gameState.ball.speed);
     }
     if (gameState.ball.y > GAME_HEIGHT - 10 || gameState.ball.y < 10) {
       // BALL BOUNCES OFF TOP OR BOTTOM
       playBlip();
-      gameState.ball.velocity = -gameState.ball.velocity;
-      gameState.ball.angle = -gameState.ball.angle;
+      // gameState.ball.speed = -gameState.ball.speed;
+      gameState.ball.angle = gameState.ball.angle + Math.PI / 2;
     }
     if (
       // BALL HITS LEFT BAT
@@ -249,7 +231,7 @@ const collisionDetection = () => {
       gameState.ball.y > gameState.batLeft.y
     ) {
       playBlip();
-      gameState.ball.velocity = -gameState.ball.velocity;
+      gameState.ball.angle = gameState.ball.angle + Math.PI + randomAngle();
     }
     if (
       // BALL HITS RIGHT BAT
@@ -259,11 +241,11 @@ const collisionDetection = () => {
       gameState.ball.y > gameState.batRight.y
     ) {
       playBlip();
-      gameState.ball.velocity = -gameState.ball.velocity;
+      // gameState.ball.speed = -gameState.ball.speed;
+      gameState.ball.angle = gameState.ball.angle + Math.PI + randomAngle();
     }
 
-    // console.log(gameState.ball.velocity);
-    // console.log(gameState.ball.angle);
+    // OPPONENT BASIC AI
     if (
       gameState.ball.dx > 0 &&
       gameState.ball.dy < 0 &&
@@ -288,7 +270,7 @@ const resetElements = () => {
 };
 
 const drawBackground = () => {
-  ctx.fillStyle = BACKGROUND_COLOR;
+  ctx.fillStyle = COLOURS.BACKGROUND;
   ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 };
 
@@ -301,7 +283,7 @@ const makeDelay = (timeDelay, fn) => {
 const moveElements = () => {
   if (gameState.phase == PHASE.GAME) {
     const [dx, dy] = getDisplacement(
-      gameState.ball.velocity,
+      gameState.ball.speed,
       gameState.ball.angle
     );
     gameState.ball.dx = dx;
@@ -387,6 +369,7 @@ const drawGameElements = () => {
   drawBat(BAT_SIDE.left);
   drawBat(BAT_SIDE.right);
   drawScore();
+  drawVersionNumber();
 };
 
 const gameLoop = () => {

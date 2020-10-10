@@ -2968,7 +2968,42 @@ function cloneDeep(value) {
 
 module.exports = cloneDeep;
 
-},{"./_baseClone":"../node_modules/lodash/_baseClone.js"}],"gameControl.ts":[function(require,module,exports) {
+},{"./_baseClone":"../node_modules/lodash/_baseClone.js"}],"gameConstants.ts":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.VERSION_NUMBER = exports.PHASE = exports.INPUT = exports.COLOURS = exports.WIN_SCORE = exports.BAT_WIDTH = exports.BAT_HEIGHT = exports.BALL_RADIUS = exports.BAT_SIDE_MARGIN = exports.GAME_HEIGHT = exports.GAME_WIDTH = exports.BAT_SIDE = void 0;
+var BAT_SIDE;
+
+(function (BAT_SIDE) {
+  BAT_SIDE["left"] = "LEFT";
+  BAT_SIDE["right"] = "RIGHT";
+})(BAT_SIDE = exports.BAT_SIDE || (exports.BAT_SIDE = {}));
+
+exports.GAME_WIDTH = 600;
+exports.GAME_HEIGHT = 400;
+exports.BAT_SIDE_MARGIN = 20;
+exports.BALL_RADIUS = 10;
+exports.BAT_HEIGHT = 60;
+exports.BAT_WIDTH = 8;
+exports.WIN_SCORE = 11;
+exports.COLOURS = {
+  BACKGROUND: "#333",
+  MAIN: "#CCC"
+};
+exports.INPUT = {
+  UP: "q",
+  DOWN: "a"
+};
+exports.PHASE = {
+  START: "START",
+  GAME: "GAME",
+  END: "END"
+};
+exports.VERSION_NUMBER = "1.3";
+},{}],"gameControl.ts":[function(require,module,exports) {
 "use strict";
 
 var __importDefault = this && this.__importDefault || function (mod) {
@@ -2983,86 +3018,60 @@ Object.defineProperty(exports, "__esModule", {
 
 var cloneDeep_1 = __importDefault(require("lodash/cloneDeep"));
 
+var gameConstants_1 = require("./gameConstants");
+
 var animationRequest;
 var gameCanvas;
 var ctx;
-var BAT_SIDE;
+var blip;
 
-(function (BAT_SIDE) {
-  BAT_SIDE["left"] = "LEFT";
-  BAT_SIDE["right"] = "RIGHT";
-})(BAT_SIDE || (BAT_SIDE = {}));
-
-var GAME_WIDTH = 600;
-var GAME_HEIGHT = 400;
-var BAT_SIDE_MARGIN = 20;
-var BALL_RADIUS = 10;
-var BAT_HEIGHT = 60;
-var BAT_WIDTH = 8;
-var WIN_SCORE = 11;
-var BLIP;
-var INPUT = {
-  UP: "q",
-  DOWN: "a"
-};
-var PHASE = {
-  START: "START",
-  GAME: "GAME",
-  END: "END"
-};
-
-var getDisplacement = function getDisplacement(velocity, angle) {
-  // Angles in radians;
-  var dy = velocity * Math.cos(angle);
-  var dx = velocity * Math.sin(angle);
+var getDisplacement = function getDisplacement(speed, angle) {
+  var dy = speed * Math.cos(angle);
+  var dx = speed * Math.sin(angle);
   return [dx, dy];
 };
 
-var randomiseBallLocation = function randomiseBallLocation() {
-  var newYPosition = Math.random() * GAME_HEIGHT;
-  var newAngle = 4 + Math.random() * 1; // console.log("random angle: ", newAngle);
-  // console.log("random y pos: ", newYPosition);
-
-  return [newYPosition, newAngle];
+var randomiseBallAngle = function randomiseBallAngle() {
+  var newAngle = 4 + Math.random() * 1;
+  return newAngle;
 };
 
 var INITIAL_BALL_STATE = {
-  x: GAME_WIDTH / 2 - 5,
-  y: randomiseBallLocation()[0],
+  x: gameConstants_1.GAME_WIDTH / 2 - 5,
+  y: gameConstants_1.GAME_HEIGHT / 2,
   width: 10,
   height: 10,
-  velocity: 7,
-  angle: randomiseBallLocation()[1],
+  speed: 6,
+  acceleration: 0.2,
+  maxSpeed: 8,
+  angle: randomiseBallAngle(),
   dx: 0,
   dy: 0
 };
 var INITIAL_LEFT_BAT_STATE = {
-  x: BAT_SIDE_MARGIN,
-  y: GAME_HEIGHT / 2,
+  x: gameConstants_1.BAT_SIDE_MARGIN,
+  y: gameConstants_1.GAME_HEIGHT / 2,
   speed: 6
 };
 var INITIAL_RIGHT_BAT_STATE = {
-  x: GAME_WIDTH - BAT_SIDE_MARGIN,
-  y: GAME_HEIGHT / 2,
+  x: gameConstants_1.GAME_WIDTH - gameConstants_1.BAT_SIDE_MARGIN,
+  y: gameConstants_1.GAME_HEIGHT / 2,
   speed: 3
 };
-var BACKGROUND_COLOR = "#333";
-var MAIN_COLOR = "#CCC";
 
 var makeInitialGameState = function makeInitialGameState() {
-  var _a = randomiseBallLocation(),
-      ballY = _a[0],
-      angle = _a[1];
-
-  BLIP = new Audio("./blip.wav");
+  var angle = randomiseBallAngle();
+  blip = new Audio("./blip.wav");
   return {
-    phase: PHASE.START,
+    phase: gameConstants_1.PHASE.START,
     ball: {
       x: INITIAL_BALL_STATE.x,
-      y: ballY,
+      y: gameConstants_1.GAME_HEIGHT / 2,
       width: INITIAL_BALL_STATE.width,
       height: INITIAL_BALL_STATE.height,
-      velocity: INITIAL_BALL_STATE.velocity,
+      speed: INITIAL_BALL_STATE.speed,
+      acceleration: INITIAL_BALL_STATE.acceleration,
+      maxSpeed: INITIAL_BALL_STATE.maxSpeed,
       angle: angle,
       paused: false,
       dy: 0,
@@ -3091,29 +3100,19 @@ var makeInitialGameState = function makeInitialGameState() {
 var gameState = cloneDeep_1.default(makeInitialGameState());
 
 var clearCanvas = function clearCanvas() {
-  ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+  ctx.clearRect(0, 0, gameConstants_1.GAME_WIDTH, gameConstants_1.GAME_HEIGHT);
 };
 
 var playBlip = function playBlip() {
-  var soundPromise = BLIP.play(); // In browsers that don’t yet support this functionality,
-  // playPromise won’t be defined.
-
-  if (soundPromise !== undefined) {
-    soundPromise.then(function () {// console.log("PLAY SOUND");
-      // Automatic playback started!
-    }).catch(function (error) {
-      console.log("Sound error: ", error); // Automatic playback failed.
-      // Show a UI element to let the user manually start playback.
-    });
-  }
+  blip.play();
 };
 
 var drawCenterLine = function drawCenterLine() {
-  ctx.strokeStyle = MAIN_COLOR;
+  ctx.strokeStyle = gameConstants_1.COLOURS.MAIN;
   ctx.setLineDash([10, 10]);
   ctx.beginPath();
-  ctx.moveTo(GAME_WIDTH / 2, 0);
-  ctx.lineTo(GAME_WIDTH / 2, GAME_HEIGHT);
+  ctx.moveTo(gameConstants_1.GAME_WIDTH / 2, 0);
+  ctx.lineTo(gameConstants_1.GAME_WIDTH / 2, gameConstants_1.GAME_HEIGHT);
   ctx.stroke();
 };
 
@@ -3121,9 +3120,9 @@ var drawScore = function drawScore() {
   ctx.strokeStyle = "white";
   ctx.font = "60px arial";
   ctx.textAlign = "right";
-  ctx.fillText(gameState.score.player1, GAME_WIDTH / 2 - 20, 60);
+  ctx.fillText(gameState.score.player1, gameConstants_1.GAME_WIDTH / 2 - 20, 60);
   ctx.textAlign = "left";
-  ctx.fillText(gameState.score.player2, GAME_WIDTH / 2 + 20, 60);
+  ctx.fillText(gameState.score.player2, gameConstants_1.GAME_WIDTH / 2 + 20, 60);
 };
 
 var drawTitle = function drawTitle() {
@@ -3133,20 +3132,26 @@ var drawTitle = function drawTitle() {
   ctx.fillText("AMAZING TABLE TENNIS GAME", 60, 80);
 };
 
-var drawBall = function drawBall() {
-  ctx.fillStyle = MAIN_COLOR; // ctx.arc(gameState.ball.x, gameState.ball.y, BALL_RADIUS, 0, 2 * Math.PI);
+var drawVersionNumber = function drawVersionNumber() {
+  ctx.fillStyle = "white";
+  ctx.font = "12px arial";
+  ctx.textAlign = "left";
+  ctx.fillText("Version: " + gameConstants_1.VERSION_NUMBER, 5, 15);
+};
 
+var drawBall = function drawBall() {
+  ctx.fillStyle = gameConstants_1.COLOURS.MAIN;
   ctx.fillRect(gameState.ball.x, gameState.ball.y, gameState.ball.width, gameState.ball.height);
   ctx.fill();
 };
 
 var drawBat = function drawBat(batDirection) {
-  ctx.fillStyle = MAIN_COLOR;
+  ctx.fillStyle = gameConstants_1.COLOURS.MAIN;
 
-  if (batDirection === BAT_SIDE.left) {
-    ctx.fillRect(gameState.batLeft.x, gameState.batLeft.y, BAT_WIDTH, BAT_HEIGHT);
+  if (batDirection === gameConstants_1.BAT_SIDE.left) {
+    ctx.fillRect(gameState.batLeft.x, gameState.batLeft.y, gameConstants_1.BAT_WIDTH, gameConstants_1.BAT_HEIGHT);
   } else {
-    ctx.fillRect(gameState.batRight.x, gameState.batRight.y, BAT_WIDTH, BAT_HEIGHT);
+    ctx.fillRect(gameState.batRight.x, gameState.batRight.y, gameConstants_1.BAT_WIDTH, gameConstants_1.BAT_HEIGHT);
   }
 };
 
@@ -3154,69 +3159,77 @@ var resetBall = function resetBall() {
   // console.log("reset ball");
   gameState.ball.paused = false;
   gameState.ball.x = INITIAL_BALL_STATE.x;
-  gameState.ball.y = randomiseBallLocation()[0];
-  gameState.ball.angle = randomiseBallLocation()[1];
-  gameState.ball.velocity = INITIAL_BALL_STATE.velocity;
+  gameState.ball.y = gameConstants_1.GAME_HEIGHT / 2;
+  gameState.ball.angle = randomiseBallAngle();
 };
 
 var checkScores = function checkScores() {
-  if (gameState.score.player1 >= WIN_SCORE) {
+  if (gameState.score.player1 >= gameConstants_1.WIN_SCORE) {
     stopAnimation();
     showEndScreen();
-    gameState.phase = PHASE.END;
+    gameState.phase = gameConstants_1.PHASE.END;
     resultText.innerHTML = "YOU WIN!!!";
-  } else if (gameState.score.player2 >= WIN_SCORE) {
+  } else if (gameState.score.player2 >= gameConstants_1.WIN_SCORE) {
     stopAnimation();
     showEndScreen();
-    gameState.phase = PHASE.END;
+    gameState.phase = gameConstants_1.PHASE.END;
     resultText.innerHTML = "YOU LOSE!!!";
   }
 };
 
+var randomAngle = function randomAngle() {
+  var newAngle = Math.random() * 0.5 - 0.25;
+  return newAngle;
+};
+
 var collisionDetection = function collisionDetection() {
-  if (gameState.phase == PHASE.GAME) {
-    // if (gameState.batLeft.y > GAME_HEIGHT || gameState.batLeft.y < 0) {
-    //   gameState.batLeft.speed = -gameState.batLeft.speed;
-    // }
-    // if (gameState.batRight.y > GAME_HEIGHT || gameState.batRight.y < 0) {
-    //   gameState.batRight.speed = -gameState.batRight.speed;
-    // }
-    if (gameState.ball.x < 0 || gameState.ball.x > GAME_WIDTH) {
+  if (gameState.phase == gameConstants_1.PHASE.GAME) {
+    if (gameState.ball.x < 0 || gameState.ball.x > gameConstants_1.GAME_WIDTH) {
       // BALL MOVES OUTSIDE LEFT OR RIGHT
       if (gameState.ball.x < 0 && !gameState.ball.paused) {
+        if (gameState.ball.speed < gameState.ball.maxSpeed) {
+          gameState.ball.speed = gameState.ball.speed + gameState.ball.acceleration;
+        }
+
         gameState.score.player2 += 1;
         gameState.ball.paused = true;
         playBlip();
         makeDelay(1000, resetBall);
       }
 
-      if (gameState.ball.x > GAME_WIDTH && !gameState.ball.paused) {
+      if (gameState.ball.x > gameConstants_1.GAME_WIDTH && !gameState.ball.paused) {
+        if (gameState.ball.speed < gameState.ball.maxSpeed) {
+          gameState.ball.speed = gameState.ball.speed + gameState.ball.acceleration;
+        }
+
         gameState.score.player1 += 1;
         gameState.ball.paused = true;
         playBlip();
         makeDelay(1000, resetBall);
       }
+
+      console.log("speed: ", gameState.ball.speed);
     }
 
-    if (gameState.ball.y > GAME_HEIGHT - 10 || gameState.ball.y < 10) {
+    if (gameState.ball.y > gameConstants_1.GAME_HEIGHT - 10 || gameState.ball.y < 10) {
       // BALL BOUNCES OFF TOP OR BOTTOM
-      playBlip();
-      gameState.ball.velocity = -gameState.ball.velocity;
-      gameState.ball.angle = -gameState.ball.angle;
+      playBlip(); // gameState.ball.speed = -gameState.ball.speed;
+
+      gameState.ball.angle = gameState.ball.angle + Math.PI / 2;
     }
 
     if ( // BALL HITS LEFT BAT
-    gameState.ball.x < gameState.batLeft.x + BAT_WIDTH && gameState.ball.x > gameState.batLeft.x && gameState.ball.y < gameState.batLeft.y + BAT_HEIGHT && gameState.ball.y > gameState.batLeft.y) {
+    gameState.ball.x < gameState.batLeft.x + gameConstants_1.BAT_WIDTH && gameState.ball.x > gameState.batLeft.x && gameState.ball.y < gameState.batLeft.y + gameConstants_1.BAT_HEIGHT && gameState.ball.y > gameState.batLeft.y) {
       playBlip();
-      gameState.ball.velocity = -gameState.ball.velocity;
+      gameState.ball.angle = gameState.ball.angle + Math.PI + randomAngle();
     }
 
     if ( // BALL HITS RIGHT BAT
-    gameState.ball.x < gameState.batRight.x + BAT_WIDTH && gameState.ball.x > gameState.batRight.x && gameState.ball.y < gameState.batRight.y + BAT_HEIGHT && gameState.ball.y > gameState.batRight.y) {
-      playBlip();
-      gameState.ball.velocity = -gameState.ball.velocity;
-    } // console.log(gameState.ball.velocity);
-    // console.log(gameState.ball.angle);
+    gameState.ball.x < gameState.batRight.x + gameConstants_1.BAT_WIDTH && gameState.ball.x > gameState.batRight.x && gameState.ball.y < gameState.batRight.y + gameConstants_1.BAT_HEIGHT && gameState.ball.y > gameState.batRight.y) {
+      playBlip(); // gameState.ball.speed = -gameState.ball.speed;
+
+      gameState.ball.angle = gameState.ball.angle + Math.PI + randomAngle();
+    } // OPPONENT BASIC AI
 
 
     if (gameState.ball.dx > 0 && gameState.ball.dy < 0 && gameState.batRight.y > gameState.ball.y) {
@@ -3235,8 +3248,8 @@ var resetElements = function resetElements() {
 };
 
 var drawBackground = function drawBackground() {
-  ctx.fillStyle = BACKGROUND_COLOR;
-  ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+  ctx.fillStyle = gameConstants_1.COLOURS.BACKGROUND;
+  ctx.fillRect(0, 0, gameConstants_1.GAME_WIDTH, gameConstants_1.GAME_HEIGHT);
 };
 
 var makeDelay = function makeDelay(timeDelay, fn) {
@@ -3246,8 +3259,8 @@ var makeDelay = function makeDelay(timeDelay, fn) {
 };
 
 var moveElements = function moveElements() {
-  if (gameState.phase == PHASE.GAME) {
-    var _a = getDisplacement(gameState.ball.velocity, gameState.ball.angle),
+  if (gameState.phase == gameConstants_1.PHASE.GAME) {
+    var _a = getDisplacement(gameState.ball.speed, gameState.ball.angle),
         dx = _a[0],
         dy = _a[1];
 
@@ -3257,8 +3270,8 @@ var moveElements = function moveElements() {
     gameState.ball.y = gameState.ball.y + dy;
 
     if ( // STOP LEFT BAT GOING OFF SCREEN
-    BAT_HEIGHT + gameState.batLeft.y > GAME_HEIGHT) {
-      gameState.batLeft.y = GAME_HEIGHT - BAT_HEIGHT;
+    gameConstants_1.BAT_HEIGHT + gameState.batLeft.y > gameConstants_1.GAME_HEIGHT) {
+      gameState.batLeft.y = gameConstants_1.GAME_HEIGHT - gameConstants_1.BAT_HEIGHT;
     } else if (gameState.batLeft.y < 0) {
       gameState.batLeft.y = 0;
     } else {
@@ -3266,8 +3279,8 @@ var moveElements = function moveElements() {
     }
 
     if ( // STOP RIGHT BAT GOING OFF SCREEN
-    BAT_HEIGHT + gameState.batRight.y > GAME_HEIGHT) {
-      gameState.batRight.y = GAME_HEIGHT - BAT_HEIGHT;
+    gameConstants_1.BAT_HEIGHT + gameState.batRight.y > gameConstants_1.GAME_HEIGHT) {
+      gameState.batRight.y = gameConstants_1.GAME_HEIGHT - gameConstants_1.BAT_HEIGHT;
     } else if (gameState.batRight.y < 0) {
       gameState.batRight.y = 0;
     } else {
@@ -3302,9 +3315,9 @@ var moveBat = function moveBat(side, direction) {
 var stopBat = function stopBat(_a) {
   var key = _a.key;
 
-  if (key === INPUT.DOWN) {
+  if (key === gameConstants_1.INPUT.DOWN) {
     gameState.batLeft.downPressed = false;
-  } else if (key === INPUT.UP) {
+  } else if (key === gameConstants_1.INPUT.UP) {
     gameState.batLeft.upPressed = false;
   }
 
@@ -3327,9 +3340,10 @@ var drawGameElements = function drawGameElements() {
   drawBackground();
   drawCenterLine();
   drawBall();
-  drawBat(BAT_SIDE.left);
-  drawBat(BAT_SIDE.right);
+  drawBat(gameConstants_1.BAT_SIDE.left);
+  drawBat(gameConstants_1.BAT_SIDE.right);
   drawScore();
+  drawVersionNumber();
 };
 
 var gameLoop = function gameLoop() {
@@ -3343,7 +3357,7 @@ var init = function init() {
   gameCanvas = document.getElementById("game");
   ctx = gameCanvas.getContext("2d");
   drawStartElements();
-  gameState.phase = PHASE.GAME;
+  gameState.phase = gameConstants_1.PHASE.GAME;
 
   if (!animationRequest) {
     startAnimation();
@@ -3364,11 +3378,11 @@ var stopAnimation = function stopAnimation() {
 var detectKeyPress = function detectKeyPress(_a) {
   var key = _a.key;
 
-  if (gameState.phase == PHASE.GAME) {
-    if (key === INPUT.UP) {
+  if (gameState.phase == gameConstants_1.PHASE.GAME) {
+    if (key === gameConstants_1.INPUT.UP) {
       moveBat("LEFT", "UP");
       gameState.batLeft.upPressed = true;
-    } else if (key === INPUT.DOWN) {
+    } else if (key === gameConstants_1.INPUT.DOWN) {
       moveBat("LEFT", "DOWN");
       gameState.batLeft.downPressed = true;
     } else if (key === "p") {
@@ -3421,7 +3435,7 @@ restartButton.addEventListener("mousedown", function (e) {
   init();
   hideEndScreen();
 });
-},{"lodash/cloneDeep":"../node_modules/lodash/cloneDeep.js"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"lodash/cloneDeep":"../node_modules/lodash/cloneDeep.js","./gameConstants":"gameConstants.ts"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -3449,7 +3463,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "64976" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "55439" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
