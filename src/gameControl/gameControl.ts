@@ -99,7 +99,7 @@ const initGameState = () => {
   };
 };
 
-let gameState = cloneDeep(initGameState());
+export let gameState = cloneDeep(initGameState());
 
 const clearCanvas = () => {
   ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
@@ -313,7 +313,7 @@ const moveElements = (): void => {
   }
 };
 
-const moveBat = (side: DIRECTION, direction: DIRECTION): void => {
+export const moveBat = (side: DIRECTION, direction: DIRECTION): void => {
   if (side === DIRECTION.Left) {
     if (direction === DIRECTION.Down) {
       gameState.batLeft.speed = INITIAL_LEFT_BAT_STATE.speed;
@@ -364,7 +364,7 @@ const startAnimation = (): void => {
   animationRequest = requestAnimationFrame(gameLoop);
 };
 
-const stopAnimation = (): void => {
+export const stopAnimation = (): void => {
   resetElements();
   cancelAnimationFrame(animationRequest);
 };
@@ -382,19 +382,3 @@ const showEndScreen = (): void => {
 };
 
 initUserInput();
-
-// USER INPUT
-
-export const detectKeyPress = ({ key }: { key: string }): void => {
-  if (gameState.phase == PHASE.GAME) {
-    if (key === INPUT.UP) {
-      moveBat(DIRECTION.Left, DIRECTION.Up);
-      gameState.batLeft.upPressed = true;
-    } else if (key === INPUT.DOWN) {
-      moveBat(DIRECTION.Left, DIRECTION.Down);
-      gameState.batLeft.downPressed = true;
-    } else if (key === INPUT.X) {
-      stopAnimation();
-    }
-  }
-};
