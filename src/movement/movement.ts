@@ -1,4 +1,5 @@
 import { gameState } from "../gameControl/gameState";
+import { ball } from "../gameControl/gameControl";
 import { PHASE, BAT_HEIGHT, GAME_HEIGHT } from "../common/gameConstants";
 
 const getDisplacement = (speed: number, angle: number): [number, number] => {
@@ -9,14 +10,11 @@ const getDisplacement = (speed: number, angle: number): [number, number] => {
 
 export const moveElements = (): void => {
   if (gameState.phase == PHASE.GAME) {
-    const [dx, dy] = getDisplacement(
-      gameState.ball.speed,
-      gameState.ball.angle
-    );
-    gameState.ball.dx = dx;
-    gameState.ball.dy = dy;
-    gameState.ball.x = gameState.ball.x + dx;
-    gameState.ball.y = gameState.ball.y + dy;
+    const [dx, dy] = getDisplacement(ball.speed, ball.angle);
+    ball.dx = dx;
+    ball.dy = dy;
+    ball.x = ball.x + dx;
+    ball.y = ball.y + dy;
 
     if (
       // STOP LEFT BAT GOING OFF SCREEN

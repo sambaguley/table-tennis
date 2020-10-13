@@ -3069,30 +3069,12 @@ var __importDefault = this && this.__importDefault || function (mod) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.resetElements = exports.gameState = exports.initGameState = exports.INITIAL_RIGHT_BAT_STATE = exports.INITIAL_LEFT_BAT_STATE = exports.INITIAL_BALL_STATE = exports.randomiseBallAngle = void 0;
+exports.resetElements = exports.gameState = exports.initGameState = exports.INITIAL_RIGHT_BAT_STATE = exports.INITIAL_LEFT_BAT_STATE = void 0;
 
 var cloneDeep_1 = __importDefault(require("lodash/cloneDeep"));
 
 var gameConstants_1 = require("../common/gameConstants");
 
-exports.randomiseBallAngle = function () {
-  var minAngle = 4;
-  var angleSpread = 1;
-  return minAngle + Math.random() * angleSpread;
-};
-
-exports.INITIAL_BALL_STATE = {
-  x: gameConstants_1.GAME_WIDTH / 2 - 5,
-  y: gameConstants_1.GAME_HEIGHT / 2,
-  width: 10,
-  height: 10,
-  speed: 6,
-  acceleration: 0.2,
-  maxSpeed: 8,
-  angle: exports.randomiseBallAngle(),
-  dx: 0,
-  dy: 0
-};
 exports.INITIAL_LEFT_BAT_STATE = {
   x: gameConstants_1.BAT_SIDE_MARGIN,
   y: gameConstants_1.GAME_HEIGHT / 2,
@@ -3105,22 +3087,8 @@ exports.INITIAL_RIGHT_BAT_STATE = {
 };
 
 exports.initGameState = function () {
-  var angle = exports.randomiseBallAngle();
   return {
     phase: gameConstants_1.PHASE.START,
-    ball: {
-      x: exports.INITIAL_BALL_STATE.x,
-      y: gameConstants_1.GAME_HEIGHT / 2,
-      width: exports.INITIAL_BALL_STATE.width,
-      height: exports.INITIAL_BALL_STATE.height,
-      speed: exports.INITIAL_BALL_STATE.speed,
-      acceleration: exports.INITIAL_BALL_STATE.acceleration,
-      maxSpeed: exports.INITIAL_BALL_STATE.maxSpeed,
-      angle: angle,
-      paused: false,
-      dy: 0,
-      dx: 0
-    },
     batLeft: {
       x: exports.INITIAL_LEFT_BAT_STATE.x,
       y: exports.INITIAL_LEFT_BAT_STATE.y,
@@ -3344,7 +3312,7 @@ var randomAngle = function randomAngle() {
 };
 
 var reflectAngle = function reflectAngle() {
-  return gameState_1.gameState.ball.angle + Math.PI + randomAngle();
+  return gameControl_1.ball.angle + Math.PI + randomAngle();
 };
 
 var playBlip = function playBlip() {
@@ -3353,53 +3321,53 @@ var playBlip = function playBlip() {
 
 exports.collisionDetection = function () {
   if (gameState_1.gameState.phase == gameConstants_1.PHASE.GAME) {
-    if (gameState_1.gameState.ball.x < 0 || gameState_1.gameState.ball.x > gameConstants_1.GAME_WIDTH) {
+    if (gameControl_1.ball.x < 0 || gameControl_1.ball.x > gameConstants_1.GAME_WIDTH) {
       // BALL MOVES OUTSIDE LEFT OR RIGHT
-      if (gameState_1.gameState.ball.x < 0 && !gameState_1.gameState.ball.paused) {
-        if (gameState_1.gameState.ball.speed < gameState_1.gameState.ball.maxSpeed) {
-          gameState_1.gameState.ball.speed = gameState_1.gameState.ball.speed + gameState_1.gameState.ball.acceleration;
+      if (gameControl_1.ball.x < 0 && !gameControl_1.ball.paused) {
+        if (gameControl_1.ball.speed < gameControl_1.ball.maxSpeed) {
+          gameControl_1.ball.speed = gameControl_1.ball.speed + gameControl_1.ball.acceleration;
         }
 
         gameState_1.gameState.score.player2 += 1;
-        gameState_1.gameState.ball.paused = true;
+        gameControl_1.ball.paused = true;
         playBlip();
         utils_1.makeDelay(1000, gameControl_1.ball.reset);
       }
 
-      if (gameState_1.gameState.ball.x > gameConstants_1.GAME_WIDTH && !gameState_1.gameState.ball.paused) {
-        if (gameState_1.gameState.ball.speed < gameState_1.gameState.ball.maxSpeed) {
-          gameState_1.gameState.ball.speed = gameState_1.gameState.ball.speed + gameState_1.gameState.ball.acceleration;
+      if (gameControl_1.ball.x > gameConstants_1.GAME_WIDTH && !gameControl_1.ball.paused) {
+        if (gameControl_1.ball.speed < gameControl_1.ball.maxSpeed) {
+          gameControl_1.ball.speed = gameControl_1.ball.speed + gameControl_1.ball.acceleration;
         }
 
         gameState_1.gameState.score.player1 += 1;
-        gameState_1.gameState.ball.paused = true;
+        gameControl_1.ball.paused = true;
         playBlip();
         utils_1.makeDelay(1000, gameControl_1.ball.reset);
       }
     }
 
-    if (gameState_1.gameState.ball.y > gameConstants_1.GAME_HEIGHT - 10 || gameState_1.gameState.ball.y < 10) {
+    if (gameControl_1.ball.y > gameConstants_1.GAME_HEIGHT - 10 || gameControl_1.ball.y < 10) {
       // BALL BOUNCES OFF TOP OR BOTTOM
       playBlip();
-      gameState_1.gameState.ball.angle = gameState_1.gameState.ball.angle + Math.PI / 2;
+      gameControl_1.ball.angle = gameControl_1.ball.angle + Math.PI / 2;
     }
 
     if ( // BALL HITS LEFT BAT
-    gameState_1.gameState.ball.x < gameState_1.gameState.batLeft.x + gameConstants_1.BAT_WIDTH && gameState_1.gameState.ball.x > gameState_1.gameState.batLeft.x && gameState_1.gameState.ball.y < gameState_1.gameState.batLeft.y + gameConstants_1.BAT_HEIGHT && gameState_1.gameState.ball.y > gameState_1.gameState.batLeft.y) {
+    gameControl_1.ball.x < gameState_1.gameState.batLeft.x + gameConstants_1.BAT_WIDTH && gameControl_1.ball.x > gameState_1.gameState.batLeft.x && gameControl_1.ball.y < gameState_1.gameState.batLeft.y + gameConstants_1.BAT_HEIGHT && gameControl_1.ball.y > gameState_1.gameState.batLeft.y) {
       playBlip();
-      gameState_1.gameState.ball.angle = reflectAngle();
+      gameControl_1.ball.angle = reflectAngle();
     }
 
     if ( // BALL HITS RIGHT BAT
-    gameState_1.gameState.ball.x < gameState_1.gameState.batRight.x + gameConstants_1.BAT_WIDTH && gameState_1.gameState.ball.x > gameState_1.gameState.batRight.x && gameState_1.gameState.ball.y < gameState_1.gameState.batRight.y + gameConstants_1.BAT_HEIGHT && gameState_1.gameState.ball.y > gameState_1.gameState.batRight.y) {
+    gameControl_1.ball.x < gameState_1.gameState.batRight.x + gameConstants_1.BAT_WIDTH && gameControl_1.ball.x > gameState_1.gameState.batRight.x && gameControl_1.ball.y < gameState_1.gameState.batRight.y + gameConstants_1.BAT_HEIGHT && gameControl_1.ball.y > gameState_1.gameState.batRight.y) {
       playBlip();
-      gameState_1.gameState.ball.angle = reflectAngle();
+      gameControl_1.ball.angle = reflectAngle();
     } // OPPONENT BASIC AI
 
 
-    if (gameState_1.gameState.ball.dx > 0 && gameState_1.gameState.ball.dy < 0 && gameState_1.gameState.batRight.y > gameState_1.gameState.ball.y) {
+    if (gameControl_1.ball.dx > 0 && gameControl_1.ball.dy < 0 && gameState_1.gameState.batRight.y > gameControl_1.ball.y) {
       gameState_1.gameState.batRight.speed = -gameState_1.INITIAL_RIGHT_BAT_STATE.speed;
-    } else if (gameState_1.gameState.ball.dx > 0 && gameState_1.gameState.ball.dy > 0 && gameState_1.gameState.batRight.y < gameState_1.gameState.ball.y) {
+    } else if (gameControl_1.ball.dx > 0 && gameControl_1.ball.dy > 0 && gameState_1.gameState.batRight.y < gameControl_1.ball.y) {
       gameState_1.gameState.batRight.speed = gameState_1.INITIAL_RIGHT_BAT_STATE.speed;
     }
 
@@ -3415,33 +3383,67 @@ Object.defineProperty(exports, "__esModule", {
 
 var gameControl_1 = require("../gameControl/gameControl");
 
-var gameState_1 = require("../gameControl/gameState");
-
 var gameConstants_1 = require("../common/gameConstants");
+
+var randomiseBallAngle = function randomiseBallAngle() {
+  var minAngle = 4;
+  var angleSpread = 1;
+  return minAngle + Math.random() * angleSpread;
+};
+
+var INITIAL_STATE = {
+  x: gameConstants_1.GAME_WIDTH / 2 - 5,
+  y: gameConstants_1.GAME_HEIGHT / 2,
+  width: 10,
+  height: 10,
+  speed: 6,
+  maxSpeed: 8,
+  angle: randomiseBallAngle(),
+  dx: 0,
+  dy: 0,
+  paused: false
+};
 
 var Ball =
 /** @class */
 function () {
-  function Ball() {}
+  function Ball() {
+    var _this = this;
 
-  Ball.prototype.draw = function () {
-    gameControl_1.ctx.fillStyle = gameConstants_1.COLOURS.MAIN;
-    gameControl_1.ctx.fillRect(gameState_1.gameState.ball.x, gameState_1.gameState.ball.y, gameState_1.gameState.ball.width, gameState_1.gameState.ball.height);
-    gameControl_1.ctx.fill();
-  };
+    this.height = 10;
+    this.width = 10;
+    this.acceleration = 0.2;
+    this.maxSpeed = 8;
+    this.x = INITIAL_STATE.x;
+    this.y = INITIAL_STATE.y;
+    this.speed = INITIAL_STATE.speed;
+    this.angle = INITIAL_STATE.angle;
+    this.dx = INITIAL_STATE.dx;
+    this.dy = INITIAL_STATE.dy;
+    this.paused = INITIAL_STATE.paused;
 
-  Ball.prototype.reset = function () {
-    gameState_1.gameState.ball.paused = false;
-    gameState_1.gameState.ball.x = gameState_1.INITIAL_BALL_STATE.x;
-    gameState_1.gameState.ball.y = gameConstants_1.GAME_HEIGHT / 2;
-    gameState_1.gameState.ball.angle = gameState_1.randomiseBallAngle();
-  };
+    this.draw = function () {
+      gameControl_1.ctx.fillStyle = gameConstants_1.COLOURS.MAIN;
+      gameControl_1.ctx.fillRect(_this.x, _this.y, _this.width, _this.height);
+      gameControl_1.ctx.fill();
+    };
+
+    this.reset = function () {
+      _this.paused = false;
+      _this.x = INITIAL_STATE.x;
+      _this.y = INITIAL_STATE.y;
+      _this.angle = randomiseBallAngle();
+      _this.speed = INITIAL_STATE.speed;
+      _this.dx = INITIAL_STATE.dx;
+      _this.dy = INITIAL_STATE.dy;
+    };
+  }
 
   return Ball;
 }();
 
 exports.default = Ball;
-},{"../gameControl/gameControl":"gameControl/gameControl.ts","../gameControl/gameState":"gameControl/gameState.ts","../common/gameConstants":"common/gameConstants.ts"}],"elements/table.ts":[function(require,module,exports) {
+},{"../gameControl/gameControl":"gameControl/gameControl.ts","../common/gameConstants":"common/gameConstants.ts"}],"elements/table.ts":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -3487,6 +3489,8 @@ exports.moveElements = void 0;
 
 var gameState_1 = require("../gameControl/gameState");
 
+var gameControl_1 = require("../gameControl/gameControl");
+
 var gameConstants_1 = require("../common/gameConstants");
 
 var getDisplacement = function getDisplacement(speed, angle) {
@@ -3497,14 +3501,14 @@ var getDisplacement = function getDisplacement(speed, angle) {
 
 exports.moveElements = function () {
   if (gameState_1.gameState.phase == gameConstants_1.PHASE.GAME) {
-    var _a = getDisplacement(gameState_1.gameState.ball.speed, gameState_1.gameState.ball.angle),
+    var _a = getDisplacement(gameControl_1.ball.speed, gameControl_1.ball.angle),
         dx = _a[0],
         dy = _a[1];
 
-    gameState_1.gameState.ball.dx = dx;
-    gameState_1.gameState.ball.dy = dy;
-    gameState_1.gameState.ball.x = gameState_1.gameState.ball.x + dx;
-    gameState_1.gameState.ball.y = gameState_1.gameState.ball.y + dy;
+    gameControl_1.ball.dx = dx;
+    gameControl_1.ball.dy = dy;
+    gameControl_1.ball.x = gameControl_1.ball.x + dx;
+    gameControl_1.ball.y = gameControl_1.ball.y + dy;
 
     if ( // STOP LEFT BAT GOING OFF SCREEN
     gameConstants_1.BAT_HEIGHT + gameState_1.gameState.batLeft.y > gameConstants_1.GAME_HEIGHT) {
@@ -3527,7 +3531,7 @@ exports.moveElements = function () {
     gameState_1.gameState.batRight.y = gameState_1.gameState.batRight.y + gameState_1.gameState.batRight.speed;
   }
 };
-},{"../gameControl/gameState":"gameControl/gameState.ts","../common/gameConstants":"common/gameConstants.ts"}],"gameControl/gameControl.ts":[function(require,module,exports) {
+},{"../gameControl/gameState":"gameControl/gameState.ts","../gameControl/gameControl":"gameControl/gameControl.ts","../common/gameConstants":"common/gameConstants.ts"}],"gameControl/gameControl.ts":[function(require,module,exports) {
 "use strict";
 
 var __importDefault = this && this.__importDefault || function (mod) {

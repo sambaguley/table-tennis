@@ -14,8 +14,7 @@ import {
 
 const randomAngle = (): number => Math.random() * 0.5 - 0.25;
 
-const reflectAngle = (): number =>
-  gameState.ball.angle + Math.PI + randomAngle();
+const reflectAngle = (): number => ball.angle + Math.PI + randomAngle();
 
 const playBlip = () => {
   blip.play();
@@ -23,67 +22,57 @@ const playBlip = () => {
 
 export const collisionDetection = (): void => {
   if (gameState.phase == PHASE.GAME) {
-    if (gameState.ball.x < 0 || gameState.ball.x > GAME_WIDTH) {
+    if (ball.x < 0 || ball.x > GAME_WIDTH) {
       // BALL MOVES OUTSIDE LEFT OR RIGHT
-      if (gameState.ball.x < 0 && !gameState.ball.paused) {
-        if (gameState.ball.speed < gameState.ball.maxSpeed) {
-          gameState.ball.speed =
-            gameState.ball.speed + gameState.ball.acceleration;
+      if (ball.x < 0 && !ball.paused) {
+        if (ball.speed < ball.maxSpeed) {
+          ball.speed = ball.speed + ball.acceleration;
         }
         gameState.score.player2 += 1;
-        gameState.ball.paused = true;
+        ball.paused = true;
         playBlip();
         makeDelay(1000, ball.reset);
       }
-      if (gameState.ball.x > GAME_WIDTH && !gameState.ball.paused) {
-        if (gameState.ball.speed < gameState.ball.maxSpeed) {
-          gameState.ball.speed =
-            gameState.ball.speed + gameState.ball.acceleration;
+      if (ball.x > GAME_WIDTH && !ball.paused) {
+        if (ball.speed < ball.maxSpeed) {
+          ball.speed = ball.speed + ball.acceleration;
         }
         gameState.score.player1 += 1;
-        gameState.ball.paused = true;
+        ball.paused = true;
         playBlip();
         makeDelay(1000, ball.reset);
       }
     }
-    if (gameState.ball.y > GAME_HEIGHT - 10 || gameState.ball.y < 10) {
+    if (ball.y > GAME_HEIGHT - 10 || ball.y < 10) {
       // BALL BOUNCES OFF TOP OR BOTTOM
       playBlip();
-      gameState.ball.angle = gameState.ball.angle + Math.PI / 2;
+      ball.angle = ball.angle + Math.PI / 2;
     }
     if (
       // BALL HITS LEFT BAT
-      gameState.ball.x < gameState.batLeft.x + BAT_WIDTH &&
-      gameState.ball.x > gameState.batLeft.x &&
-      gameState.ball.y < gameState.batLeft.y + BAT_HEIGHT &&
-      gameState.ball.y > gameState.batLeft.y
+      ball.x < gameState.batLeft.x + BAT_WIDTH &&
+      ball.x > gameState.batLeft.x &&
+      ball.y < gameState.batLeft.y + BAT_HEIGHT &&
+      ball.y > gameState.batLeft.y
     ) {
       playBlip();
-      gameState.ball.angle = reflectAngle();
+      ball.angle = reflectAngle();
     }
     if (
       // BALL HITS RIGHT BAT
-      gameState.ball.x < gameState.batRight.x + BAT_WIDTH &&
-      gameState.ball.x > gameState.batRight.x &&
-      gameState.ball.y < gameState.batRight.y + BAT_HEIGHT &&
-      gameState.ball.y > gameState.batRight.y
+      ball.x < gameState.batRight.x + BAT_WIDTH &&
+      ball.x > gameState.batRight.x &&
+      ball.y < gameState.batRight.y + BAT_HEIGHT &&
+      ball.y > gameState.batRight.y
     ) {
       playBlip();
-      gameState.ball.angle = reflectAngle();
+      ball.angle = reflectAngle();
     }
 
     // OPPONENT BASIC AI
-    if (
-      gameState.ball.dx > 0 &&
-      gameState.ball.dy < 0 &&
-      gameState.batRight.y > gameState.ball.y
-    ) {
+    if (ball.dx > 0 && ball.dy < 0 && gameState.batRight.y > ball.y) {
       gameState.batRight.speed = -INITIAL_RIGHT_BAT_STATE.speed;
-    } else if (
-      gameState.ball.dx > 0 &&
-      gameState.ball.dy > 0 &&
-      gameState.batRight.y < gameState.ball.y
-    ) {
+    } else if (ball.dx > 0 && ball.dy > 0 && gameState.batRight.y < ball.y) {
       gameState.batRight.speed = INITIAL_RIGHT_BAT_STATE.speed;
     }
     checkScores();
