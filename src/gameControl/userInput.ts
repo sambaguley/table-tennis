@@ -6,11 +6,10 @@ import {
   init,
   hideStartScreen,
   hideEndScreen,
-  moveBat,
   stopAnimation,
 } from "./gameControl";
 
-import { stopBat } from "../elements/bat";
+import { stopBat, moveBat } from "../elements/bat";
 
 import { gameState } from "./gameState";
 

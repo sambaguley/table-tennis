@@ -124,7 +124,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.HTML_ELEMENTS = exports.PHASE = exports.INPUT = exports.FONTS = exports.COLOURS = exports.WIN_SCORE = exports.BAT_WIDTH = exports.BAT_HEIGHT = exports.BALL_RADIUS = exports.BAT_SIDE_MARGIN = exports.GAME_HEIGHT = exports.GAME_WIDTH = exports.DIRECTION = exports.VERSION_NUMBER = void 0;
-exports.VERSION_NUMBER = "1.12";
+exports.VERSION_NUMBER = "1.13";
 var DIRECTION;
 
 (function (DIRECTION) {
@@ -3131,7 +3131,7 @@ exports.resetElements = function () {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.stopBat = exports.drawBat = void 0;
+exports.moveBat = exports.stopBat = exports.drawBat = void 0;
 
 var gameControl_1 = require("../gameControl/gameControl");
 
@@ -3162,6 +3162,16 @@ exports.stopBat = function (_a) {
     gameState_1.gameState.batLeft.speed = 0;
   }
 };
+
+exports.moveBat = function (side, direction) {
+  if (side === gameConstants_1.DIRECTION.Left) {
+    if (direction === gameConstants_1.DIRECTION.Down) {
+      gameState_1.gameState.batLeft.speed = gameState_1.INITIAL_LEFT_BAT_STATE.speed;
+    } else if (direction === gameConstants_1.DIRECTION.Up) {
+      gameState_1.gameState.batLeft.speed = -gameState_1.INITIAL_LEFT_BAT_STATE.speed;
+    }
+  }
+};
 },{"../gameControl/gameControl":"gameControl/gameControl.ts","../gameControl/gameState":"gameControl/gameState.ts","../common/gameConstants":"common/gameConstants.ts"}],"gameControl/userInput.ts":[function(require,module,exports) {
 "use strict";
 
@@ -3185,10 +3195,10 @@ var detectKeyPress = function detectKeyPress(_a) {
 
   if (gameState_1.gameState.phase == gameConstants_1.PHASE.GAME) {
     if (key === gameConstants_1.INPUT.UP) {
-      gameControl_1.moveBat(gameConstants_1.DIRECTION.Left, gameConstants_1.DIRECTION.Up);
+      bat_1.moveBat(gameConstants_1.DIRECTION.Left, gameConstants_1.DIRECTION.Up);
       gameState_1.gameState.batLeft.upPressed = true;
     } else if (key === gameConstants_1.INPUT.DOWN) {
-      gameControl_1.moveBat(gameConstants_1.DIRECTION.Left, gameConstants_1.DIRECTION.Down);
+      bat_1.moveBat(gameConstants_1.DIRECTION.Left, gameConstants_1.DIRECTION.Down);
       gameState_1.gameState.batLeft.downPressed = true;
     } else if (key === gameConstants_1.INPUT.X) {
       gameControl_1.stopAnimation();
@@ -3389,13 +3399,49 @@ exports.collisionDetection = function () {
     score_1.checkScores();
   }
 };
-},{"../gameControl/gameState":"gameControl/gameState.ts","../gameControl/score":"gameControl/score.ts","../gameControl/gameControl":"gameControl/gameControl.ts","../common/utils":"common/utils.ts","../common/gameConstants":"common/gameConstants.ts","../elements/ball":"elements/ball.ts"}],"gameControl/gameControl.ts":[function(require,module,exports) {
+},{"../gameControl/gameState":"gameControl/gameState.ts","../gameControl/score":"gameControl/score.ts","../gameControl/gameControl":"gameControl/gameControl.ts","../common/utils":"common/utils.ts","../common/gameConstants":"common/gameConstants.ts","../elements/ball":"elements/ball.ts"}],"elements/table.ts":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.showEndScreen = exports.hideEndScreen = exports.hideStartScreen = exports.stopAnimation = exports.init = exports.moveBat = exports.blip = exports.ctx = void 0;
+exports.drawBackground = exports.drawVersionNumber = exports.drawCenterLine = exports.clearCanvas = void 0;
+
+var gameControl_1 = require("../gameControl/gameControl");
+
+var gameConstants_1 = require("../common/gameConstants");
+
+exports.clearCanvas = function () {
+  gameControl_1.ctx.clearRect(0, 0, gameConstants_1.GAME_WIDTH, gameConstants_1.GAME_HEIGHT);
+};
+
+exports.drawCenterLine = function () {
+  gameControl_1.ctx.strokeStyle = gameConstants_1.COLOURS.MAIN;
+  gameControl_1.ctx.setLineDash([10, 10]);
+  gameControl_1.ctx.beginPath();
+  gameControl_1.ctx.moveTo(gameConstants_1.GAME_WIDTH / 2, 0);
+  gameControl_1.ctx.lineTo(gameConstants_1.GAME_WIDTH / 2, gameConstants_1.GAME_HEIGHT);
+  gameControl_1.ctx.stroke();
+};
+
+exports.drawVersionNumber = function () {
+  gameControl_1.ctx.fillStyle = gameConstants_1.COLOURS.white;
+  gameControl_1.ctx.font = gameConstants_1.FONTS.SMALL;
+  gameControl_1.ctx.textAlign = "left";
+  gameControl_1.ctx.fillText("Version: " + gameConstants_1.VERSION_NUMBER, 5, 15);
+};
+
+exports.drawBackground = function () {
+  gameControl_1.ctx.fillStyle = gameConstants_1.COLOURS.BACKGROUND;
+  gameControl_1.ctx.fillRect(0, 0, gameConstants_1.GAME_WIDTH, gameConstants_1.GAME_HEIGHT);
+};
+},{"../gameControl/gameControl":"gameControl/gameControl.ts","../common/gameConstants":"common/gameConstants.ts"}],"gameControl/gameControl.ts":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.showEndScreen = exports.hideEndScreen = exports.hideStartScreen = exports.stopAnimation = exports.init = exports.blip = exports.ctx = void 0;
 
 var gameConstants_1 = require("../common/gameConstants");
 
@@ -3411,6 +3457,8 @@ var bat_1 = require("../elements/bat");
 
 var ball_1 = require("../elements/ball");
 
+var table_1 = require("../elements/table");
+
 var score_1 = require("./score");
 
 var animationRequest;
@@ -3420,31 +3468,6 @@ var getDisplacement = function getDisplacement(speed, angle) {
   var dy = speed * Math.cos(angle);
   var dx = speed * Math.sin(angle);
   return [dx, dy];
-};
-
-var clearCanvas = function clearCanvas() {
-  exports.ctx.clearRect(0, 0, gameConstants_1.GAME_WIDTH, gameConstants_1.GAME_HEIGHT);
-};
-
-var drawCenterLine = function drawCenterLine() {
-  exports.ctx.strokeStyle = gameConstants_1.COLOURS.MAIN;
-  exports.ctx.setLineDash([10, 10]);
-  exports.ctx.beginPath();
-  exports.ctx.moveTo(gameConstants_1.GAME_WIDTH / 2, 0);
-  exports.ctx.lineTo(gameConstants_1.GAME_WIDTH / 2, gameConstants_1.GAME_HEIGHT);
-  exports.ctx.stroke();
-};
-
-var drawVersionNumber = function drawVersionNumber() {
-  exports.ctx.fillStyle = gameConstants_1.COLOURS.white;
-  exports.ctx.font = gameConstants_1.FONTS.SMALL;
-  exports.ctx.textAlign = "left";
-  exports.ctx.fillText("Version: " + gameConstants_1.VERSION_NUMBER, 5, 15);
-};
-
-var drawBackground = function drawBackground() {
-  exports.ctx.fillStyle = gameConstants_1.COLOURS.BACKGROUND;
-  exports.ctx.fillRect(0, 0, gameConstants_1.GAME_WIDTH, gameConstants_1.GAME_HEIGHT);
 };
 
 var moveElements = function moveElements() {
@@ -3480,25 +3503,15 @@ var moveElements = function moveElements() {
   }
 };
 
-exports.moveBat = function (side, direction) {
-  if (side === gameConstants_1.DIRECTION.Left) {
-    if (direction === gameConstants_1.DIRECTION.Down) {
-      gameState_1.gameState.batLeft.speed = gameState_1.INITIAL_LEFT_BAT_STATE.speed;
-    } else if (direction === gameConstants_1.DIRECTION.Up) {
-      gameState_1.gameState.batLeft.speed = -gameState_1.INITIAL_LEFT_BAT_STATE.speed;
-    }
-  }
-};
-
 var drawGameElements = function drawGameElements() {
-  clearCanvas();
-  drawBackground();
-  drawCenterLine();
+  table_1.clearCanvas();
+  table_1.drawBackground();
+  table_1.drawCenterLine();
   ball_1.drawBall();
   bat_1.drawBat(gameConstants_1.DIRECTION.Left);
   bat_1.drawBat(gameConstants_1.DIRECTION.Right);
   score_1.drawScore();
-  drawVersionNumber();
+  table_1.drawVersionNumber();
 };
 
 var gameLoop = function gameLoop() {
@@ -3539,7 +3552,7 @@ exports.showEndScreen = function () {
 };
 
 userInput_1.initUserInput();
-},{"../common/gameConstants":"common/gameConstants.ts","./htmlElements":"gameControl/htmlElements.ts","./userInput":"gameControl/userInput.ts","./gameState":"gameControl/gameState.ts","../collision/collision":"collision/collision.ts","../elements/bat":"elements/bat.ts","../elements/ball":"elements/ball.ts","./score":"gameControl/score.ts"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"../common/gameConstants":"common/gameConstants.ts","./htmlElements":"gameControl/htmlElements.ts","./userInput":"gameControl/userInput.ts","./gameState":"gameControl/gameState.ts","../collision/collision":"collision/collision.ts","../elements/bat":"elements/bat.ts","../elements/ball":"elements/ball.ts","../elements/table":"elements/table.ts","./score":"gameControl/score.ts"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;

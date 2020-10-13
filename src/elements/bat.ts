@@ -1,14 +1,11 @@
 import { ctx } from "../gameControl/gameControl";
-import { gameState } from "../gameControl/gameState";
+import { gameState, INITIAL_LEFT_BAT_STATE } from "../gameControl/gameState";
 
 import {
   DIRECTION,
   BAT_HEIGHT,
   BAT_WIDTH,
   COLOURS,
-  GAME_HEIGHT,
-  GAME_WIDTH,
-  BAT_SIDE_MARGIN,
   INPUT,
 } from "../common/gameConstants";
 
@@ -39,5 +36,15 @@ export const stopBat = ({ key }: { key: string }): void => {
   }
   if (!gameState.batLeft.upPressed && !gameState.batLeft.downPressed) {
     gameState.batLeft.speed = 0;
+  }
+};
+
+export const moveBat = (side: DIRECTION, direction: DIRECTION): void => {
+  if (side === DIRECTION.Left) {
+    if (direction === DIRECTION.Down) {
+      gameState.batLeft.speed = INITIAL_LEFT_BAT_STATE.speed;
+    } else if (direction === DIRECTION.Up) {
+      gameState.batLeft.speed = -INITIAL_LEFT_BAT_STATE.speed;
+    }
   }
 };
