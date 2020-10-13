@@ -3143,8 +3143,12 @@ exports.initUserInput = function () {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.blip = void 0;
+exports.playBlip = exports.blip = void 0;
 exports.blip = new Audio("./blip.wav");
+
+exports.playBlip = function () {
+  exports.blip.play();
+};
 },{}],"common/utils.ts":[function(require,module,exports) {
 "use strict";
 
@@ -3184,54 +3188,49 @@ var reflectAngle = function reflectAngle() {
   return gameControl_1.ball.angle + Math.PI + randomAngle();
 };
 
-var playBlip = function playBlip() {
-  sound_1.blip.play();
-};
-
 exports.collisionDetection = function () {
-  if (gameState_1.gameState.phase == gameConstants_1.PHASE.GAME) {
-    if (gameControl_1.ball.x < 0 || gameControl_1.ball.x > gameConstants_1.GAME_WIDTH) {
-      // BALL MOVES OUTSIDE LEFT OR RIGHT
-      if (gameControl_1.ball.x < 0 && !gameControl_1.ball.paused) {
-        if (gameControl_1.ball.speed < gameControl_1.ball.maxSpeed) {
-          gameControl_1.ball.speed = gameControl_1.ball.speed + gameControl_1.ball.acceleration;
-        }
-
-        gameState_1.gameState.score.player2 += 1;
-        gameControl_1.ball.paused = true;
-        playBlip();
-        utils_1.makeDelay(1000, gameControl_1.ball.reset);
+  // REFACTOR TO MAKE COLLISIONS GENERIC
+  if (gameControl_1.ball.x < 0 || gameControl_1.ball.x > gameConstants_1.GAME_WIDTH) {
+    // BALL MOVES OUTSIDE LEFT OR RIGHT
+    if (gameControl_1.ball.x < 0 && !gameControl_1.ball.paused) {
+      if (gameControl_1.ball.speed < gameControl_1.ball.maxSpeed) {
+        gameControl_1.ball.speed = gameControl_1.ball.speed + gameControl_1.ball.acceleration;
       }
 
-      if (gameControl_1.ball.x > gameConstants_1.GAME_WIDTH && !gameControl_1.ball.paused) {
-        if (gameControl_1.ball.speed < gameControl_1.ball.maxSpeed) {
-          gameControl_1.ball.speed = gameControl_1.ball.speed + gameControl_1.ball.acceleration;
-        }
+      gameState_1.gameState.score.player2 += 1;
+      gameControl_1.ball.paused = true;
+      sound_1.playBlip();
+      utils_1.makeDelay(1000, gameControl_1.ball.reset);
+    }
 
-        gameState_1.gameState.score.player1 += 1;
-        gameControl_1.ball.paused = true;
-        playBlip();
-        utils_1.makeDelay(1000, gameControl_1.ball.reset);
+    if (gameControl_1.ball.x > gameConstants_1.GAME_WIDTH && !gameControl_1.ball.paused) {
+      if (gameControl_1.ball.speed < gameControl_1.ball.maxSpeed) {
+        gameControl_1.ball.speed = gameControl_1.ball.speed + gameControl_1.ball.acceleration;
       }
-    }
 
-    if (gameControl_1.ball.y > gameConstants_1.GAME_HEIGHT - 10 || gameControl_1.ball.y < 10) {
-      // BALL BOUNCES OFF TOP OR BOTTOM
-      playBlip();
-      gameControl_1.ball.angle = gameControl_1.ball.angle + Math.PI / 2;
+      gameState_1.gameState.score.player1 += 1;
+      gameControl_1.ball.paused = true;
+      sound_1.playBlip();
+      utils_1.makeDelay(1000, gameControl_1.ball.reset);
     }
+  }
 
-    if ( // BALL HITS LEFT BAT
-    gameControl_1.ball.x < gameControl_1.playerBat.x + gameConstants_1.BAT_WIDTH && gameControl_1.ball.x > gameControl_1.playerBat.x && gameControl_1.ball.y < gameControl_1.playerBat.y + gameConstants_1.BAT_HEIGHT && gameControl_1.ball.y > gameControl_1.playerBat.y) {
-      playBlip();
-      gameControl_1.ball.angle = reflectAngle();
-    }
+  if (gameControl_1.ball.y > gameConstants_1.GAME_HEIGHT - 10 || gameControl_1.ball.y < 10) {
+    // BALL BOUNCES OFF TOP OR BOTTOM
+    sound_1.playBlip();
+    gameControl_1.ball.angle = gameControl_1.ball.angle + Math.PI / 2;
+  }
 
-    if ( // BALL HITS RIGHT BAT
-    gameControl_1.ball.x < gameControl_1.opponentBat.x + gameConstants_1.BAT_WIDTH && gameControl_1.ball.x > gameControl_1.opponentBat.x && gameControl_1.ball.y < gameControl_1.opponentBat.y + gameConstants_1.BAT_HEIGHT && gameControl_1.ball.y > gameControl_1.opponentBat.y) {
-      playBlip();
-      gameControl_1.ball.angle = reflectAngle();
-    }
+  if ( // BALL HITS LEFT BAT
+  gameControl_1.ball.x < gameControl_1.playerBat.x + gameConstants_1.BAT_WIDTH && gameControl_1.ball.x > gameControl_1.playerBat.x && gameControl_1.ball.y < gameControl_1.playerBat.y + gameConstants_1.BAT_HEIGHT && gameControl_1.ball.y > gameControl_1.playerBat.y) {
+    sound_1.playBlip();
+    gameControl_1.ball.angle = reflectAngle();
+  }
+
+  if ( // BALL HITS RIGHT BAT
+  gameControl_1.ball.x < gameControl_1.opponentBat.x + gameConstants_1.BAT_WIDTH && gameControl_1.ball.x > gameControl_1.opponentBat.x && gameControl_1.ball.y < gameControl_1.opponentBat.y + gameConstants_1.BAT_HEIGHT && gameControl_1.ball.y > gameControl_1.opponentBat.y) {
+    sound_1.playBlip();
+    gameControl_1.ball.angle = reflectAngle();
   }
 };
 },{"../gameControl/gameState":"gameControl/gameState.ts","../gameControl/gameControl":"gameControl/gameControl.ts","../sound/sound":"sound/sound.ts","../common/utils":"common/utils.ts","../common/gameConstants":"common/gameConstants.ts"}],"ai/ai.ts":[function(require,module,exports) {
