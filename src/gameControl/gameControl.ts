@@ -1,4 +1,3 @@
-import cloneDeep from "lodash/cloneDeep";
 import {
   DIRECTION,
   GAME_WIDTH,
@@ -20,16 +19,15 @@ import {
   gameState,
   INITIAL_BALL_STATE,
   INITIAL_LEFT_BAT_STATE,
-  INITIAL_RIGHT_BAT_STATE,
   randomiseBallAngle,
   resetElements,
 } from "./gameState";
 
-import { checkScores } from "./score";
+import { collisionDetection } from "../collision/collision";
 
 let animationRequest;
 let ctx;
-let blip;
+export let blip;
 
 blip = new Audio("./blip.wav");
 
@@ -41,10 +39,6 @@ const getDisplacement = (speed: number, angle: number): [number, number] => {
 
 const clearCanvas = () => {
   ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
-};
-
-const playBlip = () => {
-  blip.play();
 };
 
 const drawCenterLine = (): void => {
@@ -102,96 +96,16 @@ const drawBat = (batDirection): void => {
   }
 };
 
-const resetBall = (): void => {
+export const resetBall = (): void => {
   gameState.ball.paused = false;
   gameState.ball.x = INITIAL_BALL_STATE.x;
   gameState.ball.y = GAME_HEIGHT / 2;
   gameState.ball.angle = randomiseBallAngle();
 };
 
-const randomAngle = (): number => Math.random() * 0.5 - 0.25;
-
-const reflectAngle = (): number =>
-  gameState.ball.angle + Math.PI + randomAngle();
-
-const collisionDetection = (): void => {
-  if (gameState.phase == PHASE.GAME) {
-    if (gameState.ball.x < 0 || gameState.ball.x > GAME_WIDTH) {
-      // BALL MOVES OUTSIDE LEFT OR RIGHT
-      if (gameState.ball.x < 0 && !gameState.ball.paused) {
-        if (gameState.ball.speed < gameState.ball.maxSpeed) {
-          gameState.ball.speed =
-            gameState.ball.speed + gameState.ball.acceleration;
-        }
-        gameState.score.player2 += 1;
-        gameState.ball.paused = true;
-        playBlip();
-        makeDelay(1000, resetBall);
-      }
-      if (gameState.ball.x > GAME_WIDTH && !gameState.ball.paused) {
-        if (gameState.ball.speed < gameState.ball.maxSpeed) {
-          gameState.ball.speed =
-            gameState.ball.speed + gameState.ball.acceleration;
-        }
-        gameState.score.player1 += 1;
-        gameState.ball.paused = true;
-        playBlip();
-        makeDelay(1000, resetBall);
-      }
-    }
-    if (gameState.ball.y > GAME_HEIGHT - 10 || gameState.ball.y < 10) {
-      // BALL BOUNCES OFF TOP OR BOTTOM
-      playBlip();
-      gameState.ball.angle = gameState.ball.angle + Math.PI / 2;
-    }
-    if (
-      // BALL HITS LEFT BAT
-      gameState.ball.x < gameState.batLeft.x + BAT_WIDTH &&
-      gameState.ball.x > gameState.batLeft.x &&
-      gameState.ball.y < gameState.batLeft.y + BAT_HEIGHT &&
-      gameState.ball.y > gameState.batLeft.y
-    ) {
-      playBlip();
-      gameState.ball.angle = reflectAngle();
-    }
-    if (
-      // BALL HITS RIGHT BAT
-      gameState.ball.x < gameState.batRight.x + BAT_WIDTH &&
-      gameState.ball.x > gameState.batRight.x &&
-      gameState.ball.y < gameState.batRight.y + BAT_HEIGHT &&
-      gameState.ball.y > gameState.batRight.y
-    ) {
-      playBlip();
-      gameState.ball.angle = reflectAngle();
-    }
-
-    // OPPONENT BASIC AI
-    if (
-      gameState.ball.dx > 0 &&
-      gameState.ball.dy < 0 &&
-      gameState.batRight.y > gameState.ball.y
-    ) {
-      gameState.batRight.speed = -INITIAL_RIGHT_BAT_STATE.speed;
-    } else if (
-      gameState.ball.dx > 0 &&
-      gameState.ball.dy > 0 &&
-      gameState.batRight.y < gameState.ball.y
-    ) {
-      gameState.batRight.speed = INITIAL_RIGHT_BAT_STATE.speed;
-    }
-    checkScores();
-  }
-};
-
 const drawBackground = (): void => {
   ctx.fillStyle = COLOURS.BACKGROUND;
   ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
-};
-
-const makeDelay = (timeDelay: number, fn: () => void): void => {
-  setTimeout(() => {
-    fn();
-  }, timeDelay);
 };
 
 const moveElements = (): void => {
