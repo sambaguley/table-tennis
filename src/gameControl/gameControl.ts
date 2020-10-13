@@ -4,7 +4,7 @@ import { initUserInput } from "./userInput";
 import { gameState, resetElements } from "./gameState";
 import { collisionDetection } from "../collision/collision";
 import { drawBat } from "../elements/bat";
-import { drawBall } from "../elements/ball";
+import Ball from "../elements/ball";
 import {
   clearCanvas,
   drawCenterLine,
@@ -15,13 +15,14 @@ import { drawScore } from "./score";
 import { moveElements } from "../movement/movement";
 
 let animationRequest;
+export let ball;
 export let ctx;
 
 const drawGameElements = (): void => {
   clearCanvas();
   drawBackground();
   drawCenterLine();
-  drawBall();
+  ball.draw();
   drawBat(DIRECTION.Left);
   drawBat(DIRECTION.Right);
   drawScore();
@@ -37,6 +38,7 @@ const gameLoop = (): void => {
 
 export const init = (): void => {
   ctx = gameCanvas.getContext("2d");
+  ball = new Ball();
   gameState.phase = PHASE.GAME;
   if (!animationRequest) {
     startAnimation();

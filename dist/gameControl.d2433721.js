@@ -124,7 +124,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.HTML_ELEMENTS = exports.PHASE = exports.INPUT = exports.FONTS = exports.COLOURS = exports.WIN_SCORE = exports.BAT_WIDTH = exports.BAT_HEIGHT = exports.BALL_RADIUS = exports.BAT_SIDE_MARGIN = exports.GAME_HEIGHT = exports.GAME_WIDTH = exports.DIRECTION = exports.VERSION_NUMBER = void 0;
-exports.VERSION_NUMBER = "1.14";
+exports.VERSION_NUMBER = "1.15";
 var DIRECTION;
 
 (function (DIRECTION) {
@@ -3319,33 +3319,7 @@ exports.makeDelay = function (timeDelay, fn) {
     fn();
   }, timeDelay);
 };
-},{}],"elements/ball.ts":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.resetBall = exports.drawBall = void 0;
-
-var gameControl_1 = require("../gameControl/gameControl");
-
-var gameState_1 = require("../gameControl/gameState");
-
-var gameConstants_1 = require("../common/gameConstants");
-
-exports.drawBall = function () {
-  gameControl_1.ctx.fillStyle = gameConstants_1.COLOURS.MAIN;
-  gameControl_1.ctx.fillRect(gameState_1.gameState.ball.x, gameState_1.gameState.ball.y, gameState_1.gameState.ball.width, gameState_1.gameState.ball.height);
-  gameControl_1.ctx.fill();
-};
-
-exports.resetBall = function () {
-  gameState_1.gameState.ball.paused = false;
-  gameState_1.gameState.ball.x = gameState_1.INITIAL_BALL_STATE.x;
-  gameState_1.gameState.ball.y = gameConstants_1.GAME_HEIGHT / 2;
-  gameState_1.gameState.ball.angle = gameState_1.randomiseBallAngle();
-};
-},{"../gameControl/gameControl":"gameControl/gameControl.ts","../gameControl/gameState":"gameControl/gameState.ts","../common/gameConstants":"common/gameConstants.ts"}],"collision/collision.ts":[function(require,module,exports) {
+},{}],"collision/collision.ts":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -3357,13 +3331,13 @@ var gameState_1 = require("../gameControl/gameState");
 
 var score_1 = require("../gameControl/score");
 
+var gameControl_1 = require("../gameControl/gameControl");
+
 var sound_1 = require("../sound/sound");
 
 var utils_1 = require("../common/utils");
 
 var gameConstants_1 = require("../common/gameConstants");
-
-var ball_1 = require("../elements/ball");
 
 var randomAngle = function randomAngle() {
   return Math.random() * 0.5 - 0.25;
@@ -3389,7 +3363,7 @@ exports.collisionDetection = function () {
         gameState_1.gameState.score.player2 += 1;
         gameState_1.gameState.ball.paused = true;
         playBlip();
-        utils_1.makeDelay(1000, ball_1.resetBall);
+        utils_1.makeDelay(1000, gameControl_1.ball.reset);
       }
 
       if (gameState_1.gameState.ball.x > gameConstants_1.GAME_WIDTH && !gameState_1.gameState.ball.paused) {
@@ -3400,7 +3374,7 @@ exports.collisionDetection = function () {
         gameState_1.gameState.score.player1 += 1;
         gameState_1.gameState.ball.paused = true;
         playBlip();
-        utils_1.makeDelay(1000, ball_1.resetBall);
+        utils_1.makeDelay(1000, gameControl_1.ball.reset);
       }
     }
 
@@ -3432,7 +3406,42 @@ exports.collisionDetection = function () {
     score_1.checkScores();
   }
 };
-},{"../gameControl/gameState":"gameControl/gameState.ts","../gameControl/score":"gameControl/score.ts","../sound/sound":"sound/sound.ts","../common/utils":"common/utils.ts","../common/gameConstants":"common/gameConstants.ts","../elements/ball":"elements/ball.ts"}],"elements/table.ts":[function(require,module,exports) {
+},{"../gameControl/gameState":"gameControl/gameState.ts","../gameControl/score":"gameControl/score.ts","../gameControl/gameControl":"gameControl/gameControl.ts","../sound/sound":"sound/sound.ts","../common/utils":"common/utils.ts","../common/gameConstants":"common/gameConstants.ts"}],"elements/ball.ts":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var gameControl_1 = require("../gameControl/gameControl");
+
+var gameState_1 = require("../gameControl/gameState");
+
+var gameConstants_1 = require("../common/gameConstants");
+
+var Ball =
+/** @class */
+function () {
+  function Ball() {}
+
+  Ball.prototype.draw = function () {
+    gameControl_1.ctx.fillStyle = gameConstants_1.COLOURS.MAIN;
+    gameControl_1.ctx.fillRect(gameState_1.gameState.ball.x, gameState_1.gameState.ball.y, gameState_1.gameState.ball.width, gameState_1.gameState.ball.height);
+    gameControl_1.ctx.fill();
+  };
+
+  Ball.prototype.reset = function () {
+    gameState_1.gameState.ball.paused = false;
+    gameState_1.gameState.ball.x = gameState_1.INITIAL_BALL_STATE.x;
+    gameState_1.gameState.ball.y = gameConstants_1.GAME_HEIGHT / 2;
+    gameState_1.gameState.ball.angle = gameState_1.randomiseBallAngle();
+  };
+
+  return Ball;
+}();
+
+exports.default = Ball;
+},{"../gameControl/gameControl":"gameControl/gameControl.ts","../gameControl/gameState":"gameControl/gameState.ts","../common/gameConstants":"common/gameConstants.ts"}],"elements/table.ts":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -3521,10 +3530,16 @@ exports.moveElements = function () {
 },{"../gameControl/gameState":"gameControl/gameState.ts","../common/gameConstants":"common/gameConstants.ts"}],"gameControl/gameControl.ts":[function(require,module,exports) {
 "use strict";
 
+var __importDefault = this && this.__importDefault || function (mod) {
+  return mod && mod.__esModule ? mod : {
+    "default": mod
+  };
+};
+
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.stopAnimation = exports.init = exports.ctx = void 0;
+exports.stopAnimation = exports.init = exports.ctx = exports.ball = void 0;
 
 var gameConstants_1 = require("../common/gameConstants");
 
@@ -3538,7 +3553,7 @@ var collision_1 = require("../collision/collision");
 
 var bat_1 = require("../elements/bat");
 
-var ball_1 = require("../elements/ball");
+var ball_1 = __importDefault(require("../elements/ball"));
 
 var table_1 = require("../elements/table");
 
@@ -3552,7 +3567,7 @@ var drawGameElements = function drawGameElements() {
   table_1.clearCanvas();
   table_1.drawBackground();
   table_1.drawCenterLine();
-  ball_1.drawBall();
+  exports.ball.draw();
   bat_1.drawBat(gameConstants_1.DIRECTION.Left);
   bat_1.drawBat(gameConstants_1.DIRECTION.Right);
   score_1.drawScore();
@@ -3568,6 +3583,7 @@ var gameLoop = function gameLoop() {
 
 exports.init = function () {
   exports.ctx = htmlElements_1.gameCanvas.getContext("2d");
+  exports.ball = new ball_1.default();
   gameState_1.gameState.phase = gameConstants_1.PHASE.GAME;
 
   if (!animationRequest) {

@@ -1,5 +1,6 @@
 import { gameState, INITIAL_RIGHT_BAT_STATE } from "../gameControl/gameState";
 import { checkScores } from "../gameControl/score";
+import { ball } from "../gameControl/gameControl";
 import { blip } from "../sound/sound";
 import { makeDelay } from "../common/utils";
 
@@ -10,8 +11,6 @@ import {
   BAT_WIDTH,
   PHASE,
 } from "../common/gameConstants";
-
-import { resetBall } from "../elements/ball";
 
 const randomAngle = (): number => Math.random() * 0.5 - 0.25;
 
@@ -34,7 +33,7 @@ export const collisionDetection = (): void => {
         gameState.score.player2 += 1;
         gameState.ball.paused = true;
         playBlip();
-        makeDelay(1000, resetBall);
+        makeDelay(1000, ball.reset);
       }
       if (gameState.ball.x > GAME_WIDTH && !gameState.ball.paused) {
         if (gameState.ball.speed < gameState.ball.maxSpeed) {
@@ -44,7 +43,7 @@ export const collisionDetection = (): void => {
         gameState.score.player1 += 1;
         gameState.ball.paused = true;
         playBlip();
-        makeDelay(1000, resetBall);
+        makeDelay(1000, ball.reset);
       }
     }
     if (gameState.ball.y > GAME_HEIGHT - 10 || gameState.ball.y < 10) {
