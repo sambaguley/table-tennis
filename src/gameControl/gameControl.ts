@@ -12,13 +12,15 @@ import {
   COLOURS,
   VERSION_NUMBER,
   FONTS,
-  HTML_ELEMENTS,
-} from "./gameConstants";
+} from "../common/gameConstants";
 
-import { TEXT } from "./gameText";
+import { startScreen, endScreen, resultText, gameCanvas } from "./htmlElements";
+
+import { initUserInput } from "./userInput";
+
+import { TEXT } from "../common/gameText";
 
 let animationRequest;
-let gameCanvas;
 let ctx;
 let blip;
 
@@ -125,13 +127,6 @@ const drawScore = (): void => {
   ctx.fillText(gameState.score.player2, GAME_WIDTH / 2 + 20, 60);
 };
 
-const drawTitle = (): void => {
-  ctx.fillStyle = COLOURS.white;
-  ctx.font = FONTS.TITLE;
-  ctx.textAlign = "left";
-  ctx.fillText("AMAZING TABLE TENNIS GAME", 60, 80);
-};
-
 const drawVersionNumber = (): void => {
   ctx.fillStyle = COLOURS.white;
   ctx.font = FONTS.SMALL;
@@ -219,7 +214,6 @@ const collisionDetection = (): void => {
         playBlip();
         makeDelay(1000, resetBall);
       }
-      console.log("speed: ", gameState.ball.speed);
     }
     if (gameState.ball.y > GAME_HEIGHT - 10 || gameState.ball.y < 10) {
       // BALL BOUNCES OFF TOP OR BOTTOM
@@ -329,7 +323,7 @@ const moveBat = (side: DIRECTION, direction: DIRECTION): void => {
   }
 };
 
-const stopBat = ({ key }: { key: string }): void => {
+export const stopBat = ({ key }: { key: string }): void => {
   if (key === INPUT.DOWN) {
     gameState.batLeft.downPressed = false;
   } else if (key === INPUT.UP) {
@@ -338,12 +332,6 @@ const stopBat = ({ key }: { key: string }): void => {
   if (!gameState.batLeft.upPressed && !gameState.batLeft.downPressed) {
     gameState.batLeft.speed = 0;
   }
-};
-
-const drawStartElements = (): void => {
-  clearCanvas();
-  drawBackground();
-  drawTitle();
 };
 
 const drawGameElements = (): void => {
@@ -364,10 +352,8 @@ const gameLoop = (): void => {
   animationRequest = requestAnimationFrame(gameLoop);
 };
 
-const init = (): void => {
-  gameCanvas = document.getElementById("game") as HTMLCanvasElement;
+export const init = (): void => {
   ctx = gameCanvas.getContext("2d");
-  drawStartElements();
   gameState.phase = PHASE.GAME;
   if (!animationRequest) {
     startAnimation();
@@ -383,30 +369,11 @@ const stopAnimation = (): void => {
   cancelAnimationFrame(animationRequest);
 };
 
-const detectKeyPress = ({ key }: { key: string }): void => {
-  if (gameState.phase == PHASE.GAME) {
-    if (key === INPUT.UP) {
-      moveBat(DIRECTION.Left, DIRECTION.Up);
-      gameState.batLeft.upPressed = true;
-    } else if (key === INPUT.DOWN) {
-      moveBat(DIRECTION.Left, DIRECTION.Down);
-      gameState.batLeft.downPressed = true;
-    }
-  }
-};
-
-document.addEventListener("keydown", (e) => {
-  detectKeyPress(e);
-});
-document.addEventListener("keyup", (e) => {
-  stopBat(e);
-});
-
-const hideStartScreen = (): void => {
+export const hideStartScreen = (): void => {
   startScreen.classList.add("hide");
 };
 
-const hideEndScreen = (): void => {
+export const hideEndScreen = (): void => {
   endScreen.classList.add("hide");
 };
 
@@ -414,22 +381,20 @@ const showEndScreen = (): void => {
   endScreen.classList.remove("hide");
 };
 
-const startButton = document.getElementsByClassName(
-  HTML_ELEMENTS.START_BUTTON
-)[0];
-const restartButton = document.getElementsByClassName(
-  HTML_ELEMENTS.RESTART_BUTTON
-)[0];
-const startScreen = document.getElementById(HTML_ELEMENTS.START_SCREEN);
-const endScreen = document.getElementById(HTML_ELEMENTS.END_SCREEN);
-const resultText = document.getElementById(HTML_ELEMENTS.RESULT_TEXT);
+initUserInput();
 
-startButton.addEventListener("mousedown", (e) => {
-  init();
-  hideStartScreen();
-});
+// USER INPUT
 
-restartButton.addEventListener("mousedown", (e) => {
-  init();
-  hideEndScreen();
-});
+export const detectKeyPress = ({ key }: { key: string }): void => {
+  if (gameState.phase == PHASE.GAME) {
+    if (key === INPUT.UP) {
+      moveBat(DIRECTION.Left, DIRECTION.Up);
+      gameState.batLeft.upPressed = true;
+    } else if (key === INPUT.DOWN) {
+      moveBat(DIRECTION.Left, DIRECTION.Down);
+      gameState.batLeft.downPressed = true;
+    } else if (key === INPUT.X) {
+      stopAnimation();
+    }
+  }
+};

@@ -1,4 +1,4 @@
-export const VERSION_NUMBER: string = "1.5";
+export const VERSION_NUMBER: string = "1.7";
 
 export enum DIRECTION {
   Up = "UP",
@@ -33,6 +33,7 @@ export const FONTS = {
 export const INPUT = {
   UP: "q",
   DOWN: "a",
+  X: "x",
 };
 
 export const PHASE = {
