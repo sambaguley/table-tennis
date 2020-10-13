@@ -69,12 +69,5 @@ export const collisionDetection = (): void => {
       playBlip();
       ball.angle = reflectAngle();
     }
-
-    // OPPONENT BASIC AI
-    if (ball.dx > 0 && ball.dy < 0 && opponentBat.y > ball.y) {
-      opponentBat.changeDirection(DIRECTION.Up);
-    } else if (ball.dx > 0 && ball.dy > 0 && opponentBat.y < ball.y) {
-      opponentBat.changeDirection(DIRECTION.Down);
-    }
   }
 };

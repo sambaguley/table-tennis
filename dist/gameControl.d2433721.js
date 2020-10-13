@@ -3231,17 +3231,29 @@ exports.collisionDetection = function () {
     gameControl_1.ball.x < gameControl_1.opponentBat.x + gameConstants_1.BAT_WIDTH && gameControl_1.ball.x > gameControl_1.opponentBat.x && gameControl_1.ball.y < gameControl_1.opponentBat.y + gameConstants_1.BAT_HEIGHT && gameControl_1.ball.y > gameControl_1.opponentBat.y) {
       playBlip();
       gameControl_1.ball.angle = reflectAngle();
-    } // OPPONENT BASIC AI
-
-
-    if (gameControl_1.ball.dx > 0 && gameControl_1.ball.dy < 0 && gameControl_1.opponentBat.y > gameControl_1.ball.y) {
-      gameControl_1.opponentBat.changeDirection(gameConstants_1.DIRECTION.Up);
-    } else if (gameControl_1.ball.dx > 0 && gameControl_1.ball.dy > 0 && gameControl_1.opponentBat.y < gameControl_1.ball.y) {
-      gameControl_1.opponentBat.changeDirection(gameConstants_1.DIRECTION.Down);
     }
   }
 };
-},{"../gameControl/gameState":"gameControl/gameState.ts","../gameControl/gameControl":"gameControl/gameControl.ts","../sound/sound":"sound/sound.ts","../common/utils":"common/utils.ts","../common/gameConstants":"common/gameConstants.ts"}],"elements/ball.ts":[function(require,module,exports) {
+},{"../gameControl/gameState":"gameControl/gameState.ts","../gameControl/gameControl":"gameControl/gameControl.ts","../sound/sound":"sound/sound.ts","../common/utils":"common/utils.ts","../common/gameConstants":"common/gameConstants.ts"}],"ai/ai.ts":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.moveOpponent = void 0;
+
+var gameConstants_1 = require("../common/gameConstants");
+
+var gameControl_1 = require("../gameControl/gameControl");
+
+exports.moveOpponent = function () {
+  if (gameControl_1.ball.dx > 0 && gameControl_1.ball.dy < 0 && gameControl_1.opponentBat.y > gameControl_1.ball.y) {
+    gameControl_1.opponentBat.changeDirection(gameConstants_1.DIRECTION.Up);
+  } else if (gameControl_1.ball.dx > 0 && gameControl_1.ball.dy > 0 && gameControl_1.opponentBat.y < gameControl_1.ball.y) {
+    gameControl_1.opponentBat.changeDirection(gameConstants_1.DIRECTION.Down);
+  }
+};
+},{"../common/gameConstants":"common/gameConstants.ts","../gameControl/gameControl":"gameControl/gameControl.ts"}],"elements/ball.ts":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -3553,6 +3565,8 @@ var gameState_1 = require("./gameState");
 
 var collision_1 = require("../collision/collision");
 
+var ai_1 = require("../ai/ai");
+
 var ball_1 = __importDefault(require("../elements/ball"));
 
 var bat_1 = __importDefault(require("../elements/bat"));
@@ -3578,6 +3592,7 @@ var drawGameElements = function drawGameElements() {
 
 var gameLoop = function gameLoop() {
   movement_1.moveElements();
+  ai_1.moveOpponent();
   drawGameElements();
   collision_1.collisionDetection();
   score_1.checkScores();
@@ -3606,7 +3621,7 @@ exports.stopAnimation = function () {
 };
 
 userInput_1.initUserInput();
-},{"../common/gameConstants":"common/gameConstants.ts","../common/htmlElements":"common/htmlElements.ts","./userInput":"gameControl/userInput.ts","./gameState":"gameControl/gameState.ts","../collision/collision":"collision/collision.ts","../elements/ball":"elements/ball.ts","../elements/bat":"elements/bat.ts","../elements/table":"elements/table.ts","./score":"gameControl/score.ts","../movement/movement":"movement/movement.ts"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"../common/gameConstants":"common/gameConstants.ts","../common/htmlElements":"common/htmlElements.ts","./userInput":"gameControl/userInput.ts","./gameState":"gameControl/gameState.ts","../collision/collision":"collision/collision.ts","../ai/ai":"ai/ai.ts","../elements/ball":"elements/ball.ts","../elements/bat":"elements/bat.ts","../elements/table":"elements/table.ts","./score":"gameControl/score.ts","../movement/movement":"movement/movement.ts"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;

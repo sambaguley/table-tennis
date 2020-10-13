@@ -3,6 +3,7 @@ import { gameCanvas } from "../common/htmlElements";
 import { initUserInput } from "./userInput";
 import { gameState, resetElements } from "./gameState";
 import { collisionDetection } from "../collision/collision";
+import { moveOpponent } from "../ai/ai";
 import Ball from "../elements/ball";
 import Bat from "../elements/bat";
 import {
@@ -33,6 +34,7 @@ const drawGameElements = (): void => {
 
 const gameLoop = (): void => {
   moveElements();
+  moveOpponent();
   drawGameElements();
   collisionDetection();
   checkScores();
