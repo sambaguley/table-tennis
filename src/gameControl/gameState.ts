@@ -1,10 +1,10 @@
 import cloneDeep from "lodash/cloneDeep";
 
 import {
-  GAME_WIDTH,
   GAME_HEIGHT,
-  BAT_SIDE_MARGIN,
   PHASE,
+  BAT_SIDE_MARGIN,
+  GAME_WIDTH,
 } from "../common/gameConstants";
 
 export const randomiseBallAngle = (): number => {

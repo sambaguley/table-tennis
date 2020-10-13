@@ -1,8 +1,14 @@
-import { WIN_SCORE, PHASE } from "../common/gameConstants";
+import {
+  WIN_SCORE,
+  PHASE,
+  COLOURS,
+  GAME_WIDTH,
+  FONTS,
+} from "../common/gameConstants";
 import { TEXT } from "../common/gameText";
 import { resultText } from "./htmlElements";
 import { gameState } from "./gameState";
-import { stopAnimation, showEndScreen } from "./gameControl";
+import { stopAnimation, showEndScreen, ctx } from "./gameControl";
 
 export const checkScores = (): void => {
   if (gameState.score.player1 >= WIN_SCORE) {
@@ -16,4 +22,13 @@ export const checkScores = (): void => {
     gameState.phase = PHASE.END;
     resultText.innerHTML = TEXT.LOSE;
   }
+};
+
+export const drawScore = (): void => {
+  ctx.strokeStyle = COLOURS.white;
+  ctx.font = FONTS.SCORE;
+  ctx.textAlign = "right";
+  ctx.fillText(gameState.score.player1, GAME_WIDTH / 2 - 20, 60);
+  ctx.textAlign = "left";
+  ctx.fillText(gameState.score.player2, GAME_WIDTH / 2 + 20, 60);
 };

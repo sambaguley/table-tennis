@@ -3,13 +3,14 @@ import { startButton, restartButton } from "./htmlElements";
 import { DIRECTION, INPUT, PHASE } from "../common/gameConstants";
 
 import {
-  stopBat,
   init,
   hideStartScreen,
   hideEndScreen,
   moveBat,
   stopAnimation,
 } from "./gameControl";
+
+import { stopBat } from "../elements/bat";
 
 import { gameState } from "./gameState";
 

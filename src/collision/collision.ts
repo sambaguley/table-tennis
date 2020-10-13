@@ -1,6 +1,6 @@
-import { gameState } from "../gameControl/gameState";
+import { gameState, INITIAL_RIGHT_BAT_STATE } from "../gameControl/gameState";
 import { checkScores } from "../gameControl/score";
-import { blip, resetBall } from "../gameControl/gameControl";
+import { blip } from "../gameControl/gameControl";
 import { makeDelay } from "../common/utils";
 
 import {
@@ -11,7 +11,7 @@ import {
   PHASE,
 } from "../common/gameConstants";
 
-import { INITIAL_RIGHT_BAT_STATE } from "../gameControl/gameState";
+import { resetBall } from "../elements/ball";
 
 const randomAngle = (): number => Math.random() * 0.5 - 0.25;
 

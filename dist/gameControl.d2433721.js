@@ -124,7 +124,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.HTML_ELEMENTS = exports.PHASE = exports.INPUT = exports.FONTS = exports.COLOURS = exports.WIN_SCORE = exports.BAT_WIDTH = exports.BAT_HEIGHT = exports.BALL_RADIUS = exports.BAT_SIDE_MARGIN = exports.GAME_HEIGHT = exports.GAME_WIDTH = exports.DIRECTION = exports.VERSION_NUMBER = void 0;
-exports.VERSION_NUMBER = "1.9";
+exports.VERSION_NUMBER = "1.12";
 var DIRECTION;
 
 (function (DIRECTION) {
@@ -3125,7 +3125,44 @@ exports.gameState = cloneDeep_1.default(exports.initGameState());
 exports.resetElements = function () {
   exports.gameState = cloneDeep_1.default(exports.initGameState());
 };
-},{"lodash/cloneDeep":"../node_modules/lodash/cloneDeep.js","../common/gameConstants":"common/gameConstants.ts"}],"gameControl/userInput.ts":[function(require,module,exports) {
+},{"lodash/cloneDeep":"../node_modules/lodash/cloneDeep.js","../common/gameConstants":"common/gameConstants.ts"}],"elements/bat.ts":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.stopBat = exports.drawBat = void 0;
+
+var gameControl_1 = require("../gameControl/gameControl");
+
+var gameState_1 = require("../gameControl/gameState");
+
+var gameConstants_1 = require("../common/gameConstants");
+
+exports.drawBat = function (batDirection) {
+  gameControl_1.ctx.fillStyle = gameConstants_1.COLOURS.MAIN;
+
+  if (batDirection === gameConstants_1.DIRECTION.Left) {
+    gameControl_1.ctx.fillRect(gameState_1.gameState.batLeft.x, gameState_1.gameState.batLeft.y, gameConstants_1.BAT_WIDTH, gameConstants_1.BAT_HEIGHT);
+  } else {
+    gameControl_1.ctx.fillRect(gameState_1.gameState.batRight.x, gameState_1.gameState.batRight.y, gameConstants_1.BAT_WIDTH, gameConstants_1.BAT_HEIGHT);
+  }
+};
+
+exports.stopBat = function (_a) {
+  var key = _a.key;
+
+  if (key === gameConstants_1.INPUT.DOWN) {
+    gameState_1.gameState.batLeft.downPressed = false;
+  } else if (key === gameConstants_1.INPUT.UP) {
+    gameState_1.gameState.batLeft.upPressed = false;
+  }
+
+  if (!gameState_1.gameState.batLeft.upPressed && !gameState_1.gameState.batLeft.downPressed) {
+    gameState_1.gameState.batLeft.speed = 0;
+  }
+};
+},{"../gameControl/gameControl":"gameControl/gameControl.ts","../gameControl/gameState":"gameControl/gameState.ts","../common/gameConstants":"common/gameConstants.ts"}],"gameControl/userInput.ts":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -3138,6 +3175,8 @@ var htmlElements_1 = require("./htmlElements");
 var gameConstants_1 = require("../common/gameConstants");
 
 var gameControl_1 = require("./gameControl");
+
+var bat_1 = require("../elements/bat");
 
 var gameState_1 = require("./gameState");
 
@@ -3162,7 +3201,7 @@ exports.initUserInput = function () {
     detectKeyPress(e);
   });
   document.addEventListener("keyup", function (e) {
-    gameControl_1.stopBat(e);
+    bat_1.stopBat(e);
   });
   htmlElements_1.startButton.addEventListener("mousedown", function () {
     gameControl_1.init();
@@ -3173,7 +3212,7 @@ exports.initUserInput = function () {
     gameControl_1.hideEndScreen();
   });
 };
-},{"./htmlElements":"gameControl/htmlElements.ts","../common/gameConstants":"common/gameConstants.ts","./gameControl":"gameControl/gameControl.ts","./gameState":"gameControl/gameState.ts"}],"common/gameText.ts":[function(require,module,exports) {
+},{"./htmlElements":"gameControl/htmlElements.ts","../common/gameConstants":"common/gameConstants.ts","./gameControl":"gameControl/gameControl.ts","../elements/bat":"elements/bat.ts","./gameState":"gameControl/gameState.ts"}],"common/gameText.ts":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -3190,7 +3229,7 @@ exports.TEXT = {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.checkScores = void 0;
+exports.drawScore = exports.checkScores = void 0;
 
 var gameConstants_1 = require("../common/gameConstants");
 
@@ -3215,6 +3254,15 @@ exports.checkScores = function () {
     htmlElements_1.resultText.innerHTML = gameText_1.TEXT.LOSE;
   }
 };
+
+exports.drawScore = function () {
+  gameControl_1.ctx.strokeStyle = gameConstants_1.COLOURS.white;
+  gameControl_1.ctx.font = gameConstants_1.FONTS.SCORE;
+  gameControl_1.ctx.textAlign = "right";
+  gameControl_1.ctx.fillText(gameState_1.gameState.score.player1, gameConstants_1.GAME_WIDTH / 2 - 20, 60);
+  gameControl_1.ctx.textAlign = "left";
+  gameControl_1.ctx.fillText(gameState_1.gameState.score.player2, gameConstants_1.GAME_WIDTH / 2 + 20, 60);
+};
 },{"../common/gameConstants":"common/gameConstants.ts","../common/gameText":"common/gameText.ts","./htmlElements":"gameControl/htmlElements.ts","./gameState":"gameControl/gameState.ts","./gameControl":"gameControl/gameControl.ts"}],"common/utils.ts":[function(require,module,exports) {
 "use strict";
 
@@ -3228,7 +3276,33 @@ exports.makeDelay = function (timeDelay, fn) {
     fn();
   }, timeDelay);
 };
-},{}],"collision/collision.ts":[function(require,module,exports) {
+},{}],"elements/ball.ts":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.resetBall = exports.drawBall = void 0;
+
+var gameControl_1 = require("../gameControl/gameControl");
+
+var gameState_1 = require("../gameControl/gameState");
+
+var gameConstants_1 = require("../common/gameConstants");
+
+exports.drawBall = function () {
+  gameControl_1.ctx.fillStyle = gameConstants_1.COLOURS.MAIN;
+  gameControl_1.ctx.fillRect(gameState_1.gameState.ball.x, gameState_1.gameState.ball.y, gameState_1.gameState.ball.width, gameState_1.gameState.ball.height);
+  gameControl_1.ctx.fill();
+};
+
+exports.resetBall = function () {
+  gameState_1.gameState.ball.paused = false;
+  gameState_1.gameState.ball.x = gameState_1.INITIAL_BALL_STATE.x;
+  gameState_1.gameState.ball.y = gameConstants_1.GAME_HEIGHT / 2;
+  gameState_1.gameState.ball.angle = gameState_1.randomiseBallAngle();
+};
+},{"../gameControl/gameControl":"gameControl/gameControl.ts","../gameControl/gameState":"gameControl/gameState.ts","../common/gameConstants":"common/gameConstants.ts"}],"collision/collision.ts":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -3246,7 +3320,7 @@ var utils_1 = require("../common/utils");
 
 var gameConstants_1 = require("../common/gameConstants");
 
-var gameState_2 = require("../gameControl/gameState");
+var ball_1 = require("../elements/ball");
 
 var randomAngle = function randomAngle() {
   return Math.random() * 0.5 - 0.25;
@@ -3272,7 +3346,7 @@ exports.collisionDetection = function () {
         gameState_1.gameState.score.player2 += 1;
         gameState_1.gameState.ball.paused = true;
         playBlip();
-        utils_1.makeDelay(1000, gameControl_1.resetBall);
+        utils_1.makeDelay(1000, ball_1.resetBall);
       }
 
       if (gameState_1.gameState.ball.x > gameConstants_1.GAME_WIDTH && !gameState_1.gameState.ball.paused) {
@@ -3283,7 +3357,7 @@ exports.collisionDetection = function () {
         gameState_1.gameState.score.player1 += 1;
         gameState_1.gameState.ball.paused = true;
         playBlip();
-        utils_1.makeDelay(1000, gameControl_1.resetBall);
+        utils_1.makeDelay(1000, ball_1.resetBall);
       }
     }
 
@@ -3307,21 +3381,21 @@ exports.collisionDetection = function () {
 
 
     if (gameState_1.gameState.ball.dx > 0 && gameState_1.gameState.ball.dy < 0 && gameState_1.gameState.batRight.y > gameState_1.gameState.ball.y) {
-      gameState_1.gameState.batRight.speed = -gameState_2.INITIAL_RIGHT_BAT_STATE.speed;
+      gameState_1.gameState.batRight.speed = -gameState_1.INITIAL_RIGHT_BAT_STATE.speed;
     } else if (gameState_1.gameState.ball.dx > 0 && gameState_1.gameState.ball.dy > 0 && gameState_1.gameState.batRight.y < gameState_1.gameState.ball.y) {
-      gameState_1.gameState.batRight.speed = gameState_2.INITIAL_RIGHT_BAT_STATE.speed;
+      gameState_1.gameState.batRight.speed = gameState_1.INITIAL_RIGHT_BAT_STATE.speed;
     }
 
     score_1.checkScores();
   }
 };
-},{"../gameControl/gameState":"gameControl/gameState.ts","../gameControl/score":"gameControl/score.ts","../gameControl/gameControl":"gameControl/gameControl.ts","../common/utils":"common/utils.ts","../common/gameConstants":"common/gameConstants.ts"}],"gameControl/gameControl.ts":[function(require,module,exports) {
+},{"../gameControl/gameState":"gameControl/gameState.ts","../gameControl/score":"gameControl/score.ts","../gameControl/gameControl":"gameControl/gameControl.ts","../common/utils":"common/utils.ts","../common/gameConstants":"common/gameConstants.ts","../elements/ball":"elements/ball.ts"}],"gameControl/gameControl.ts":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.showEndScreen = exports.hideEndScreen = exports.hideStartScreen = exports.stopAnimation = exports.init = exports.stopBat = exports.moveBat = exports.resetBall = exports.blip = void 0;
+exports.showEndScreen = exports.hideEndScreen = exports.hideStartScreen = exports.stopAnimation = exports.init = exports.moveBat = exports.blip = exports.ctx = void 0;
 
 var gameConstants_1 = require("../common/gameConstants");
 
@@ -3333,8 +3407,13 @@ var gameState_1 = require("./gameState");
 
 var collision_1 = require("../collision/collision");
 
+var bat_1 = require("../elements/bat");
+
+var ball_1 = require("../elements/ball");
+
+var score_1 = require("./score");
+
 var animationRequest;
-var ctx;
 exports.blip = new Audio("./blip.wav");
 
 var getDisplacement = function getDisplacement(speed, angle) {
@@ -3344,60 +3423,28 @@ var getDisplacement = function getDisplacement(speed, angle) {
 };
 
 var clearCanvas = function clearCanvas() {
-  ctx.clearRect(0, 0, gameConstants_1.GAME_WIDTH, gameConstants_1.GAME_HEIGHT);
+  exports.ctx.clearRect(0, 0, gameConstants_1.GAME_WIDTH, gameConstants_1.GAME_HEIGHT);
 };
 
 var drawCenterLine = function drawCenterLine() {
-  ctx.strokeStyle = gameConstants_1.COLOURS.MAIN;
-  ctx.setLineDash([10, 10]);
-  ctx.beginPath();
-  ctx.moveTo(gameConstants_1.GAME_WIDTH / 2, 0);
-  ctx.lineTo(gameConstants_1.GAME_WIDTH / 2, gameConstants_1.GAME_HEIGHT);
-  ctx.stroke();
-};
-
-var drawScore = function drawScore() {
-  ctx.strokeStyle = gameConstants_1.COLOURS.white;
-  ctx.font = gameConstants_1.FONTS.SCORE;
-  ctx.textAlign = "right";
-  ctx.fillText(gameState_1.gameState.score.player1, gameConstants_1.GAME_WIDTH / 2 - 20, 60);
-  ctx.textAlign = "left";
-  ctx.fillText(gameState_1.gameState.score.player2, gameConstants_1.GAME_WIDTH / 2 + 20, 60);
+  exports.ctx.strokeStyle = gameConstants_1.COLOURS.MAIN;
+  exports.ctx.setLineDash([10, 10]);
+  exports.ctx.beginPath();
+  exports.ctx.moveTo(gameConstants_1.GAME_WIDTH / 2, 0);
+  exports.ctx.lineTo(gameConstants_1.GAME_WIDTH / 2, gameConstants_1.GAME_HEIGHT);
+  exports.ctx.stroke();
 };
 
 var drawVersionNumber = function drawVersionNumber() {
-  ctx.fillStyle = gameConstants_1.COLOURS.white;
-  ctx.font = gameConstants_1.FONTS.SMALL;
-  ctx.textAlign = "left";
-  ctx.fillText("Version: " + gameConstants_1.VERSION_NUMBER, 5, 15);
-};
-
-var drawBall = function drawBall() {
-  ctx.fillStyle = gameConstants_1.COLOURS.MAIN;
-  ctx.fillRect(gameState_1.gameState.ball.x, gameState_1.gameState.ball.y, gameState_1.gameState.ball.width, gameState_1.gameState.ball.height);
-  ctx.fill();
-};
-
-var drawBat = function drawBat(batDirection) {
-  ctx.fillStyle = gameConstants_1.COLOURS.MAIN;
-
-  if (batDirection === gameConstants_1.DIRECTION.Left) {
-    ctx.fillRect(gameState_1.gameState.batLeft.x, gameState_1.gameState.batLeft.y, gameConstants_1.BAT_WIDTH, gameConstants_1.BAT_HEIGHT);
-  } else {
-    ctx.fillRect(gameState_1.gameState.batRight.x, gameState_1.gameState.batRight.y, gameConstants_1.BAT_WIDTH, gameConstants_1.BAT_HEIGHT);
-  }
-};
-
-exports.resetBall = function () {
-  gameState_1.gameState.ball.paused = false;
-  gameState_1.gameState.ball.x = gameState_1.INITIAL_BALL_STATE.x;
-  gameState_1.gameState.ball.y = gameConstants_1.GAME_HEIGHT / 2;
-  gameState_1.gameState.ball.angle = gameState_1.randomiseBallAngle();
+  exports.ctx.fillStyle = gameConstants_1.COLOURS.white;
+  exports.ctx.font = gameConstants_1.FONTS.SMALL;
+  exports.ctx.textAlign = "left";
+  exports.ctx.fillText("Version: " + gameConstants_1.VERSION_NUMBER, 5, 15);
 };
 
 var drawBackground = function drawBackground() {
-  ctx.fillStyle = gameConstants_1.COLOURS.BACKGROUND;
-  ctx.fillRect(0, 0, gameConstants_1.GAME_WIDTH, gameConstants_1.GAME_HEIGHT);
+  exports.ctx.fillStyle = gameConstants_1.COLOURS.BACKGROUND;
+  exports.ctx.fillRect(0, 0, gameConstants_1.GAME_WIDTH, gameConstants_1.GAME_HEIGHT);
 };
 
 var moveElements = function moveElements() {
@@ -3443,28 +3490,14 @@ exports.moveBat = function (side, direction) {
   }
 };
 
-exports.stopBat = function (_a) {
-  var key = _a.key;
-
-  if (key === gameConstants_1.INPUT.DOWN) {
-    gameState_1.gameState.batLeft.downPressed = false;
-  } else if (key === gameConstants_1.INPUT.UP) {
-    gameState_1.gameState.batLeft.upPressed = false;
-  }
-
-  if (!gameState_1.gameState.batLeft.upPressed && !gameState_1.gameState.batLeft.downPressed) {
-    gameState_1.gameState.batLeft.speed = 0;
-  }
-};
-
 var drawGameElements = function drawGameElements() {
   clearCanvas();
   drawBackground();
   drawCenterLine();
-  drawBall();
-  drawBat(gameConstants_1.DIRECTION.Left);
-  drawBat(gameConstants_1.DIRECTION.Right);
-  drawScore();
+  ball_1.drawBall();
+  bat_1.drawBat(gameConstants_1.DIRECTION.Left);
+  bat_1.drawBat(gameConstants_1.DIRECTION.Right);
+  score_1.drawScore();
   drawVersionNumber();
 };
 
@@ -3476,7 +3509,7 @@ var gameLoop = function gameLoop() {
 };
 
 exports.init = function () {
-  ctx = htmlElements_1.gameCanvas.getContext("2d");
+  exports.ctx = htmlElements_1.gameCanvas.getContext("2d");
   gameState_1.gameState.phase = gameConstants_1.PHASE.GAME;
 
   if (!animationRequest) {
@@ -3506,7 +3539,7 @@ exports.showEndScreen = function () {
 };
 
 userInput_1.initUserInput();
-},{"../common/gameConstants":"common/gameConstants.ts","./htmlElements":"gameControl/htmlElements.ts","./userInput":"gameControl/userInput.ts","./gameState":"gameControl/gameState.ts","../collision/collision":"collision/collision.ts"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"../common/gameConstants":"common/gameConstants.ts","./htmlElements":"gameControl/htmlElements.ts","./userInput":"gameControl/userInput.ts","./gameState":"gameControl/gameState.ts","../collision/collision":"collision/collision.ts","../elements/bat":"elements/bat.ts","../elements/ball":"elements/ball.ts","./score":"gameControl/score.ts"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -3534,7 +3567,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "61760" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49387" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

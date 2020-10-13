@@ -3,7 +3,6 @@ import {
   GAME_WIDTH,
   GAME_HEIGHT,
   BAT_HEIGHT,
-  BAT_WIDTH,
   INPUT,
   PHASE,
   COLOURS,
@@ -15,18 +14,17 @@ import { startScreen, endScreen, gameCanvas } from "./htmlElements";
 
 import { initUserInput } from "./userInput";
 
-import {
-  gameState,
-  INITIAL_BALL_STATE,
-  INITIAL_LEFT_BAT_STATE,
-  randomiseBallAngle,
-  resetElements,
-} from "./gameState";
+import { gameState, resetElements, INITIAL_LEFT_BAT_STATE } from "./gameState";
 
 import { collisionDetection } from "../collision/collision";
 
+import { drawBat } from "../elements/bat";
+import { drawBall } from "../elements/ball";
+
+import { drawScore } from "./score";
+
 let animationRequest;
-let ctx;
+export let ctx;
 export let blip;
 
 blip = new Audio("./blip.wav");
@@ -50,57 +48,11 @@ const drawCenterLine = (): void => {
   ctx.stroke();
 };
 
-const drawScore = (): void => {
-  ctx.strokeStyle = COLOURS.white;
-  ctx.font = FONTS.SCORE;
-  ctx.textAlign = "right";
-  ctx.fillText(gameState.score.player1, GAME_WIDTH / 2 - 20, 60);
-  ctx.textAlign = "left";
-  ctx.fillText(gameState.score.player2, GAME_WIDTH / 2 + 20, 60);
-};
-
 const drawVersionNumber = (): void => {
   ctx.fillStyle = COLOURS.white;
   ctx.font = FONTS.SMALL;
   ctx.textAlign = "left";
   ctx.fillText(`Version: ${VERSION_NUMBER}`, 5, 15);
-};
-
-const drawBall = (): void => {
-  ctx.fillStyle = COLOURS.MAIN;
-  ctx.fillRect(
-    gameState.ball.x,
-    gameState.ball.y,
-    gameState.ball.width,
-    gameState.ball.height
-  );
-  ctx.fill();
-};
-
-const drawBat = (batDirection): void => {
-  ctx.fillStyle = COLOURS.MAIN;
-  if (batDirection === DIRECTION.Left) {
-    ctx.fillRect(
-      gameState.batLeft.x,
-      gameState.batLeft.y,
-      BAT_WIDTH,
-      BAT_HEIGHT
-    );
-  } else {
-    ctx.fillRect(
-      gameState.batRight.x,
-      gameState.batRight.y,
-      BAT_WIDTH,
-      BAT_HEIGHT
-    );
-  }
-};
-
-export const resetBall = (): void => {
-  gameState.ball.paused = false;
-  gameState.ball.x = INITIAL_BALL_STATE.x;
-  gameState.ball.y = GAME_HEIGHT / 2;
-  gameState.ball.angle = randomiseBallAngle();
 };
 
 const drawBackground = (): void => {
@@ -154,17 +106,6 @@ export const moveBat = (side: DIRECTION, direction: DIRECTION): void => {
     } else if (direction === DIRECTION.Up) {
       gameState.batLeft.speed = -INITIAL_LEFT_BAT_STATE.speed;
     }
-  }
-};
-
-export const stopBat = ({ key }: { key: string }): void => {
-  if (key === INPUT.DOWN) {
-    gameState.batLeft.downPressed = false;
-  } else if (key === INPUT.UP) {
-    gameState.batLeft.upPressed = false;
-  }
-  if (!gameState.batLeft.upPressed && !gameState.batLeft.downPressed) {
-    gameState.batLeft.speed = 0;
   }
 };
 
