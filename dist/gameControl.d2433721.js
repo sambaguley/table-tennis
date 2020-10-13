@@ -124,7 +124,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.HTML_ELEMENTS = exports.PHASE = exports.INPUT = exports.FONTS = exports.COLOURS = exports.WIN_SCORE = exports.BAT_WIDTH = exports.BAT_HEIGHT = exports.BALL_RADIUS = exports.BAT_SIDE_MARGIN = exports.GAME_HEIGHT = exports.GAME_WIDTH = exports.DIRECTION = exports.VERSION_NUMBER = void 0;
-exports.VERSION_NUMBER = "1.15";
+exports.VERSION_NUMBER = "1.16";
 var DIRECTION;
 
 (function (DIRECTION) {
@@ -149,7 +149,6 @@ exports.COLOURS = {
 exports.FONTS = {
   TITLE: "30px arial",
   SCORE: "60px arial",
-  BODY: "",
   SMALL: "12px arial"
 };
 exports.INPUT = {
@@ -3069,39 +3068,15 @@ var __importDefault = this && this.__importDefault || function (mod) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.resetElements = exports.gameState = exports.initGameState = exports.INITIAL_RIGHT_BAT_STATE = exports.INITIAL_LEFT_BAT_STATE = void 0;
+exports.resetElements = exports.gameState = exports.initGameState = void 0;
 
 var cloneDeep_1 = __importDefault(require("lodash/cloneDeep"));
 
 var gameConstants_1 = require("../common/gameConstants");
 
-exports.INITIAL_LEFT_BAT_STATE = {
-  x: gameConstants_1.BAT_SIDE_MARGIN,
-  y: gameConstants_1.GAME_HEIGHT / 2,
-  speed: 6
-};
-exports.INITIAL_RIGHT_BAT_STATE = {
-  x: gameConstants_1.GAME_WIDTH - gameConstants_1.BAT_SIDE_MARGIN,
-  y: gameConstants_1.GAME_HEIGHT / 2,
-  speed: 3
-};
-
 exports.initGameState = function () {
   return {
     phase: gameConstants_1.PHASE.START,
-    batLeft: {
-      x: exports.INITIAL_LEFT_BAT_STATE.x,
-      y: exports.INITIAL_LEFT_BAT_STATE.y,
-      speed: 0,
-      upPressed: false,
-      downPressed: false
-    },
-    batRight: {
-      x: exports.INITIAL_RIGHT_BAT_STATE.x,
-      y: exports.INITIAL_RIGHT_BAT_STATE.y,
-      direction: null,
-      speed: 0
-    },
     score: {
       player1: 0,
       player2: 0
@@ -3114,54 +3089,7 @@ exports.gameState = cloneDeep_1.default(exports.initGameState());
 exports.resetElements = function () {
   exports.gameState = cloneDeep_1.default(exports.initGameState());
 };
-},{"lodash/cloneDeep":"../node_modules/lodash/cloneDeep.js","../common/gameConstants":"common/gameConstants.ts"}],"elements/bat.ts":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.moveBat = exports.stopBat = exports.drawBat = void 0;
-
-var gameControl_1 = require("../gameControl/gameControl");
-
-var gameState_1 = require("../gameControl/gameState");
-
-var gameConstants_1 = require("../common/gameConstants");
-
-exports.drawBat = function (batDirection) {
-  gameControl_1.ctx.fillStyle = gameConstants_1.COLOURS.MAIN;
-
-  if (batDirection === gameConstants_1.DIRECTION.Left) {
-    gameControl_1.ctx.fillRect(gameState_1.gameState.batLeft.x, gameState_1.gameState.batLeft.y, gameConstants_1.BAT_WIDTH, gameConstants_1.BAT_HEIGHT);
-  } else {
-    gameControl_1.ctx.fillRect(gameState_1.gameState.batRight.x, gameState_1.gameState.batRight.y, gameConstants_1.BAT_WIDTH, gameConstants_1.BAT_HEIGHT);
-  }
-};
-
-exports.stopBat = function (_a) {
-  var key = _a.key;
-
-  if (key === gameConstants_1.INPUT.DOWN) {
-    gameState_1.gameState.batLeft.downPressed = false;
-  } else if (key === gameConstants_1.INPUT.UP) {
-    gameState_1.gameState.batLeft.upPressed = false;
-  }
-
-  if (!gameState_1.gameState.batLeft.upPressed && !gameState_1.gameState.batLeft.downPressed) {
-    gameState_1.gameState.batLeft.speed = 0;
-  }
-};
-
-exports.moveBat = function (side, direction) {
-  if (side === gameConstants_1.DIRECTION.Left) {
-    if (direction === gameConstants_1.DIRECTION.Down) {
-      gameState_1.gameState.batLeft.speed = gameState_1.INITIAL_LEFT_BAT_STATE.speed;
-    } else if (direction === gameConstants_1.DIRECTION.Up) {
-      gameState_1.gameState.batLeft.speed = -gameState_1.INITIAL_LEFT_BAT_STATE.speed;
-    }
-  }
-};
-},{"../gameControl/gameControl":"gameControl/gameControl.ts","../gameControl/gameState":"gameControl/gameState.ts","../common/gameConstants":"common/gameConstants.ts"}],"gameControl/userInput.ts":[function(require,module,exports) {
+},{"lodash/cloneDeep":"../node_modules/lodash/cloneDeep.js","../common/gameConstants":"common/gameConstants.ts"}],"gameControl/userInput.ts":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -3177,8 +3105,6 @@ var gameControl_1 = require("./gameControl");
 
 var screenControl_1 = require("../screens/screenControl");
 
-var bat_1 = require("../elements/bat");
-
 var gameState_1 = require("./gameState");
 
 var detectKeyPress = function detectKeyPress(_a) {
@@ -3186,11 +3112,9 @@ var detectKeyPress = function detectKeyPress(_a) {
 
   if (gameState_1.gameState.phase == gameConstants_1.PHASE.GAME) {
     if (key === gameConstants_1.INPUT.UP) {
-      bat_1.moveBat(gameConstants_1.DIRECTION.Left, gameConstants_1.DIRECTION.Up);
-      gameState_1.gameState.batLeft.upPressed = true;
+      gameControl_1.playerBat.changeDirection(gameConstants_1.DIRECTION.Up);
     } else if (key === gameConstants_1.INPUT.DOWN) {
-      bat_1.moveBat(gameConstants_1.DIRECTION.Left, gameConstants_1.DIRECTION.Down);
-      gameState_1.gameState.batLeft.downPressed = true;
+      gameControl_1.playerBat.changeDirection(gameConstants_1.DIRECTION.Down);
     } else if (key === gameConstants_1.INPUT.X) {
       gameControl_1.stopAnimation();
     }
@@ -3202,7 +3126,7 @@ exports.initUserInput = function () {
     detectKeyPress(e);
   });
   document.addEventListener("keyup", function (e) {
-    bat_1.stopBat(e);
+    gameControl_1.playerBat.stop(e);
   });
   htmlElements_1.startButton.addEventListener("mousedown", function () {
     gameControl_1.init();
@@ -3213,60 +3137,7 @@ exports.initUserInput = function () {
     screenControl_1.hideEndScreen();
   });
 };
-},{"../common/htmlElements":"common/htmlElements.ts","../common/gameConstants":"common/gameConstants.ts","./gameControl":"gameControl/gameControl.ts","../screens/screenControl":"screens/screenControl.ts","../elements/bat":"elements/bat.ts","./gameState":"gameControl/gameState.ts"}],"common/gameText.ts":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.TEXT = void 0;
-exports.TEXT = {
-  WIN: "YOU WIN!!!",
-  LOSE: "YOU LOSE!!!"
-};
-},{}],"gameControl/score.ts":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.drawScore = exports.checkScores = void 0;
-
-var gameConstants_1 = require("../common/gameConstants");
-
-var gameText_1 = require("../common/gameText");
-
-var htmlElements_1 = require("../common/htmlElements");
-
-var gameState_1 = require("./gameState");
-
-var gameControl_1 = require("./gameControl");
-
-var screenControl_1 = require("../screens/screenControl");
-
-exports.checkScores = function () {
-  if (gameState_1.gameState.score.player1 >= gameConstants_1.WIN_SCORE) {
-    gameControl_1.stopAnimation();
-    screenControl_1.showEndScreen();
-    gameState_1.gameState.phase = gameConstants_1.PHASE.END;
-    htmlElements_1.resultText.innerHTML = gameText_1.TEXT.WIN;
-  } else if (gameState_1.gameState.score.player2 >= gameConstants_1.WIN_SCORE) {
-    gameControl_1.stopAnimation();
-    screenControl_1.showEndScreen();
-    gameState_1.gameState.phase = gameConstants_1.PHASE.END;
-    htmlElements_1.resultText.innerHTML = gameText_1.TEXT.LOSE;
-  }
-};
-
-exports.drawScore = function () {
-  gameControl_1.ctx.strokeStyle = gameConstants_1.COLOURS.white;
-  gameControl_1.ctx.font = gameConstants_1.FONTS.SCORE;
-  gameControl_1.ctx.textAlign = "right";
-  gameControl_1.ctx.fillText(gameState_1.gameState.score.player1, gameConstants_1.GAME_WIDTH / 2 - 20, 60);
-  gameControl_1.ctx.textAlign = "left";
-  gameControl_1.ctx.fillText(gameState_1.gameState.score.player2, gameConstants_1.GAME_WIDTH / 2 + 20, 60);
-};
-},{"../common/gameConstants":"common/gameConstants.ts","../common/gameText":"common/gameText.ts","../common/htmlElements":"common/htmlElements.ts","./gameState":"gameControl/gameState.ts","./gameControl":"gameControl/gameControl.ts","../screens/screenControl":"screens/screenControl.ts"}],"sound/sound.ts":[function(require,module,exports) {
+},{"../common/htmlElements":"common/htmlElements.ts","../common/gameConstants":"common/gameConstants.ts","./gameControl":"gameControl/gameControl.ts","../screens/screenControl":"screens/screenControl.ts","./gameState":"gameControl/gameState.ts"}],"sound/sound.ts":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -3296,8 +3167,6 @@ Object.defineProperty(exports, "__esModule", {
 exports.collisionDetection = void 0;
 
 var gameState_1 = require("../gameControl/gameState");
-
-var score_1 = require("../gameControl/score");
 
 var gameControl_1 = require("../gameControl/gameControl");
 
@@ -3353,28 +3222,26 @@ exports.collisionDetection = function () {
     }
 
     if ( // BALL HITS LEFT BAT
-    gameControl_1.ball.x < gameState_1.gameState.batLeft.x + gameConstants_1.BAT_WIDTH && gameControl_1.ball.x > gameState_1.gameState.batLeft.x && gameControl_1.ball.y < gameState_1.gameState.batLeft.y + gameConstants_1.BAT_HEIGHT && gameControl_1.ball.y > gameState_1.gameState.batLeft.y) {
+    gameControl_1.ball.x < gameControl_1.playerBat.x + gameConstants_1.BAT_WIDTH && gameControl_1.ball.x > gameControl_1.playerBat.x && gameControl_1.ball.y < gameControl_1.playerBat.y + gameConstants_1.BAT_HEIGHT && gameControl_1.ball.y > gameControl_1.playerBat.y) {
       playBlip();
       gameControl_1.ball.angle = reflectAngle();
     }
 
     if ( // BALL HITS RIGHT BAT
-    gameControl_1.ball.x < gameState_1.gameState.batRight.x + gameConstants_1.BAT_WIDTH && gameControl_1.ball.x > gameState_1.gameState.batRight.x && gameControl_1.ball.y < gameState_1.gameState.batRight.y + gameConstants_1.BAT_HEIGHT && gameControl_1.ball.y > gameState_1.gameState.batRight.y) {
+    gameControl_1.ball.x < gameControl_1.opponentBat.x + gameConstants_1.BAT_WIDTH && gameControl_1.ball.x > gameControl_1.opponentBat.x && gameControl_1.ball.y < gameControl_1.opponentBat.y + gameConstants_1.BAT_HEIGHT && gameControl_1.ball.y > gameControl_1.opponentBat.y) {
       playBlip();
       gameControl_1.ball.angle = reflectAngle();
     } // OPPONENT BASIC AI
 
 
-    if (gameControl_1.ball.dx > 0 && gameControl_1.ball.dy < 0 && gameState_1.gameState.batRight.y > gameControl_1.ball.y) {
-      gameState_1.gameState.batRight.speed = -gameState_1.INITIAL_RIGHT_BAT_STATE.speed;
-    } else if (gameControl_1.ball.dx > 0 && gameControl_1.ball.dy > 0 && gameState_1.gameState.batRight.y < gameControl_1.ball.y) {
-      gameState_1.gameState.batRight.speed = gameState_1.INITIAL_RIGHT_BAT_STATE.speed;
+    if (gameControl_1.ball.dx > 0 && gameControl_1.ball.dy < 0 && gameControl_1.opponentBat.y > gameControl_1.ball.y) {
+      gameControl_1.opponentBat.changeDirection(gameConstants_1.DIRECTION.Up);
+    } else if (gameControl_1.ball.dx > 0 && gameControl_1.ball.dy > 0 && gameControl_1.opponentBat.y < gameControl_1.ball.y) {
+      gameControl_1.opponentBat.changeDirection(gameConstants_1.DIRECTION.Down);
     }
-
-    score_1.checkScores();
   }
 };
-},{"../gameControl/gameState":"gameControl/gameState.ts","../gameControl/score":"gameControl/score.ts","../gameControl/gameControl":"gameControl/gameControl.ts","../sound/sound":"sound/sound.ts","../common/utils":"common/utils.ts","../common/gameConstants":"common/gameConstants.ts"}],"elements/ball.ts":[function(require,module,exports) {
+},{"../gameControl/gameState":"gameControl/gameState.ts","../gameControl/gameControl":"gameControl/gameControl.ts","../sound/sound":"sound/sound.ts","../common/utils":"common/utils.ts","../common/gameConstants":"common/gameConstants.ts"}],"elements/ball.ts":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -3443,6 +3310,84 @@ function () {
 }();
 
 exports.default = Ball;
+},{"../gameControl/gameControl":"gameControl/gameControl.ts","../common/gameConstants":"common/gameConstants.ts"}],"elements/bat.ts":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var gameControl_1 = require("../gameControl/gameControl");
+
+var gameConstants_1 = require("../common/gameConstants");
+
+var INITIAL_STATE_LEFT = {
+  x: gameConstants_1.BAT_SIDE_MARGIN,
+  y: gameConstants_1.GAME_HEIGHT / 2,
+  speed: 0,
+  maxSpeed: 3
+};
+var INITIAL_STATE_RIGHT = {
+  x: gameConstants_1.GAME_WIDTH - gameConstants_1.BAT_SIDE_MARGIN,
+  y: gameConstants_1.GAME_HEIGHT / 2,
+  speed: 0,
+  maxSpeed: 3
+};
+
+var Bat =
+/** @class */
+function () {
+  function Bat(direction) {
+    var _this = this;
+
+    this.x = null;
+    this.y = null;
+    this.speed = null;
+    this.downPressed = false;
+    this.upPressed = false;
+
+    this.draw = function () {
+      gameControl_1.ctx.fillStyle = gameConstants_1.COLOURS.MAIN;
+      gameControl_1.ctx.fillRect(_this.x, _this.y, gameConstants_1.BAT_WIDTH, gameConstants_1.BAT_HEIGHT);
+    };
+
+    this.stop = function (_a) {
+      var key = _a.key;
+
+      if (key === gameConstants_1.INPUT.DOWN) {
+        _this.downPressed = false;
+      } else if (key === gameConstants_1.INPUT.UP) {
+        _this.upPressed = false;
+      }
+
+      if (!_this.upPressed && !_this.downPressed) {
+        _this.speed = 0;
+      }
+    };
+
+    this.move = function () {
+      _this.y = _this.y + _this.speed;
+    };
+
+    this.changeDirection = function (direction) {
+      if (direction === gameConstants_1.DIRECTION.Down) {
+        _this.speed = INITIAL_STATE_LEFT.maxSpeed;
+        _this.downPressed = true;
+      } else if (direction === gameConstants_1.DIRECTION.Up) {
+        _this.speed = -INITIAL_STATE_LEFT.maxSpeed;
+        _this.upPressed = true;
+      }
+    };
+
+    this.x = direction === gameConstants_1.DIRECTION.Left ? INITIAL_STATE_LEFT.x : INITIAL_STATE_RIGHT.x;
+    this.y = direction === gameConstants_1.DIRECTION.Left ? INITIAL_STATE_LEFT.y : INITIAL_STATE_RIGHT.y;
+    this.speed = direction === gameConstants_1.DIRECTION.Left ? INITIAL_STATE_LEFT.speed : INITIAL_STATE_RIGHT.speed;
+  }
+
+  return Bat;
+}();
+
+exports.default = Bat;
 },{"../gameControl/gameControl":"gameControl/gameControl.ts","../common/gameConstants":"common/gameConstants.ts"}],"elements/table.ts":[function(require,module,exports) {
 "use strict";
 
@@ -3479,7 +3424,60 @@ exports.drawBackground = function () {
   gameControl_1.ctx.fillStyle = gameConstants_1.COLOURS.BACKGROUND;
   gameControl_1.ctx.fillRect(0, 0, gameConstants_1.GAME_WIDTH, gameConstants_1.GAME_HEIGHT);
 };
-},{"../gameControl/gameControl":"gameControl/gameControl.ts","../common/gameConstants":"common/gameConstants.ts"}],"movement/movement.ts":[function(require,module,exports) {
+},{"../gameControl/gameControl":"gameControl/gameControl.ts","../common/gameConstants":"common/gameConstants.ts"}],"common/gameText.ts":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.TEXT = void 0;
+exports.TEXT = {
+  WIN: "YOU WIN!!!",
+  LOSE: "YOU LOSE!!!"
+};
+},{}],"gameControl/score.ts":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.drawScore = exports.checkScores = void 0;
+
+var gameConstants_1 = require("../common/gameConstants");
+
+var gameText_1 = require("../common/gameText");
+
+var htmlElements_1 = require("../common/htmlElements");
+
+var gameState_1 = require("./gameState");
+
+var gameControl_1 = require("./gameControl");
+
+var screenControl_1 = require("../screens/screenControl");
+
+exports.checkScores = function () {
+  if (gameState_1.gameState.score.player1 >= gameConstants_1.WIN_SCORE) {
+    gameControl_1.stopAnimation();
+    screenControl_1.showEndScreen();
+    gameState_1.gameState.phase = gameConstants_1.PHASE.END;
+    htmlElements_1.resultText.innerHTML = gameText_1.TEXT.WIN;
+  } else if (gameState_1.gameState.score.player2 >= gameConstants_1.WIN_SCORE) {
+    gameControl_1.stopAnimation();
+    screenControl_1.showEndScreen();
+    gameState_1.gameState.phase = gameConstants_1.PHASE.END;
+    htmlElements_1.resultText.innerHTML = gameText_1.TEXT.LOSE;
+  }
+};
+
+exports.drawScore = function () {
+  gameControl_1.ctx.strokeStyle = gameConstants_1.COLOURS.white;
+  gameControl_1.ctx.font = gameConstants_1.FONTS.SCORE;
+  gameControl_1.ctx.textAlign = "right";
+  gameControl_1.ctx.fillText(gameState_1.gameState.score.player1, gameConstants_1.GAME_WIDTH / 2 - 20, 60);
+  gameControl_1.ctx.textAlign = "left";
+  gameControl_1.ctx.fillText(gameState_1.gameState.score.player2, gameConstants_1.GAME_WIDTH / 2 + 20, 60);
+};
+},{"../common/gameConstants":"common/gameConstants.ts","../common/gameText":"common/gameText.ts","../common/htmlElements":"common/htmlElements.ts","./gameState":"gameControl/gameState.ts","./gameControl":"gameControl/gameControl.ts","../screens/screenControl":"screens/screenControl.ts"}],"movement/movement.ts":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -3511,24 +3509,24 @@ exports.moveElements = function () {
     gameControl_1.ball.y = gameControl_1.ball.y + dy;
 
     if ( // STOP LEFT BAT GOING OFF SCREEN
-    gameConstants_1.BAT_HEIGHT + gameState_1.gameState.batLeft.y > gameConstants_1.GAME_HEIGHT) {
-      gameState_1.gameState.batLeft.y = gameConstants_1.GAME_HEIGHT - gameConstants_1.BAT_HEIGHT;
-    } else if (gameState_1.gameState.batLeft.y < 0) {
-      gameState_1.gameState.batLeft.y = 0;
+    gameConstants_1.BAT_HEIGHT + gameControl_1.playerBat.y > gameConstants_1.GAME_HEIGHT) {
+      gameControl_1.playerBat.y = gameConstants_1.GAME_HEIGHT - gameConstants_1.BAT_HEIGHT;
+    } else if (gameControl_1.playerBat.y < 0) {
+      gameControl_1.playerBat.y = 0;
     } else {
-      gameState_1.gameState.batLeft.y = gameState_1.gameState.batLeft.y + gameState_1.gameState.batLeft.speed;
+      gameControl_1.playerBat.move();
     }
 
     if ( // STOP RIGHT BAT GOING OFF SCREEN
-    gameConstants_1.BAT_HEIGHT + gameState_1.gameState.batRight.y > gameConstants_1.GAME_HEIGHT) {
-      gameState_1.gameState.batRight.y = gameConstants_1.GAME_HEIGHT - gameConstants_1.BAT_HEIGHT;
-    } else if (gameState_1.gameState.batRight.y < 0) {
-      gameState_1.gameState.batRight.y = 0;
+    gameConstants_1.BAT_HEIGHT + gameControl_1.opponentBat.y > gameConstants_1.GAME_HEIGHT) {
+      gameControl_1.opponentBat.y = gameConstants_1.GAME_HEIGHT - gameConstants_1.BAT_HEIGHT;
+    } else if (gameControl_1.opponentBat.y < 0) {
+      gameControl_1.opponentBat.y = 0;
     } else {
-      gameState_1.gameState.batRight.y = gameState_1.gameState.batRight.y + gameState_1.gameState.batRight.speed;
+      gameControl_1.opponentBat.y = gameControl_1.opponentBat.y + gameControl_1.opponentBat.speed;
     }
 
-    gameState_1.gameState.batRight.y = gameState_1.gameState.batRight.y + gameState_1.gameState.batRight.speed;
+    gameControl_1.opponentBat.y = gameControl_1.opponentBat.y + gameControl_1.opponentBat.speed;
   }
 };
 },{"../gameControl/gameState":"gameControl/gameState.ts","../gameControl/gameControl":"gameControl/gameControl.ts","../common/gameConstants":"common/gameConstants.ts"}],"gameControl/gameControl.ts":[function(require,module,exports) {
@@ -3543,7 +3541,7 @@ var __importDefault = this && this.__importDefault || function (mod) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.stopAnimation = exports.init = exports.ctx = exports.ball = void 0;
+exports.stopAnimation = exports.init = exports.ctx = exports.opponentBat = exports.playerBat = exports.ball = void 0;
 
 var gameConstants_1 = require("../common/gameConstants");
 
@@ -3555,9 +3553,9 @@ var gameState_1 = require("./gameState");
 
 var collision_1 = require("../collision/collision");
 
-var bat_1 = require("../elements/bat");
-
 var ball_1 = __importDefault(require("../elements/ball"));
+
+var bat_1 = __importDefault(require("../elements/bat"));
 
 var table_1 = require("../elements/table");
 
@@ -3572,8 +3570,8 @@ var drawGameElements = function drawGameElements() {
   table_1.drawBackground();
   table_1.drawCenterLine();
   exports.ball.draw();
-  bat_1.drawBat(gameConstants_1.DIRECTION.Left);
-  bat_1.drawBat(gameConstants_1.DIRECTION.Right);
+  exports.playerBat.draw();
+  exports.opponentBat.draw();
   score_1.drawScore();
   table_1.drawVersionNumber();
 };
@@ -3582,12 +3580,15 @@ var gameLoop = function gameLoop() {
   movement_1.moveElements();
   drawGameElements();
   collision_1.collisionDetection();
+  score_1.checkScores();
   animationRequest = requestAnimationFrame(gameLoop);
 };
 
 exports.init = function () {
   exports.ctx = htmlElements_1.gameCanvas.getContext("2d");
   exports.ball = new ball_1.default();
+  exports.playerBat = new bat_1.default(gameConstants_1.DIRECTION.Left);
+  exports.opponentBat = new bat_1.default(gameConstants_1.DIRECTION.Right);
   gameState_1.gameState.phase = gameConstants_1.PHASE.GAME;
 
   if (!animationRequest) {
@@ -3605,7 +3606,7 @@ exports.stopAnimation = function () {
 };
 
 userInput_1.initUserInput();
-},{"../common/gameConstants":"common/gameConstants.ts","../common/htmlElements":"common/htmlElements.ts","./userInput":"gameControl/userInput.ts","./gameState":"gameControl/gameState.ts","../collision/collision":"collision/collision.ts","../elements/bat":"elements/bat.ts","../elements/ball":"elements/ball.ts","../elements/table":"elements/table.ts","./score":"gameControl/score.ts","../movement/movement":"movement/movement.ts"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"../common/gameConstants":"common/gameConstants.ts","../common/htmlElements":"common/htmlElements.ts","./userInput":"gameControl/userInput.ts","./gameState":"gameControl/gameState.ts","../collision/collision":"collision/collision.ts","../elements/ball":"elements/ball.ts","../elements/bat":"elements/bat.ts","../elements/table":"elements/table.ts","./score":"gameControl/score.ts","../movement/movement":"movement/movement.ts"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;

@@ -1,5 +1,5 @@
 import { gameState } from "../gameControl/gameState";
-import { ball } from "../gameControl/gameControl";
+import { ball, playerBat, opponentBat } from "../gameControl/gameControl";
 import { PHASE, BAT_HEIGHT, GAME_HEIGHT } from "../common/gameConstants";
 
 const getDisplacement = (speed: number, angle: number): [number, number] => {
@@ -18,28 +18,28 @@ export const moveElements = (): void => {
 
     if (
       // STOP LEFT BAT GOING OFF SCREEN
-      BAT_HEIGHT + gameState.batLeft.y >
+      BAT_HEIGHT + playerBat.y >
       GAME_HEIGHT
     ) {
-      gameState.batLeft.y = GAME_HEIGHT - BAT_HEIGHT;
-    } else if (gameState.batLeft.y < 0) {
-      gameState.batLeft.y = 0;
+      playerBat.y = GAME_HEIGHT - BAT_HEIGHT;
+    } else if (playerBat.y < 0) {
+      playerBat.y = 0;
     } else {
-      gameState.batLeft.y = gameState.batLeft.y + gameState.batLeft.speed;
+      playerBat.move();
     }
 
     if (
       // STOP RIGHT BAT GOING OFF SCREEN
-      BAT_HEIGHT + gameState.batRight.y >
+      BAT_HEIGHT + opponentBat.y >
       GAME_HEIGHT
     ) {
-      gameState.batRight.y = GAME_HEIGHT - BAT_HEIGHT;
-    } else if (gameState.batRight.y < 0) {
-      gameState.batRight.y = 0;
+      opponentBat.y = GAME_HEIGHT - BAT_HEIGHT;
+    } else if (opponentBat.y < 0) {
+      opponentBat.y = 0;
     } else {
-      gameState.batRight.y = gameState.batRight.y + gameState.batRight.speed;
+      opponentBat.y = opponentBat.y + opponentBat.speed;
     }
 
-    gameState.batRight.y = gameState.batRight.y + gameState.batRight.speed;
+    opponentBat.y = opponentBat.y + opponentBat.speed;
   }
 };

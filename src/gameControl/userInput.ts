@@ -1,18 +1,15 @@
 import { startButton, restartButton } from "../common/htmlElements";
 import { DIRECTION, INPUT, PHASE } from "../common/gameConstants";
-import { init, stopAnimation } from "./gameControl";
+import { init, stopAnimation, playerBat } from "./gameControl";
 import { hideStartScreen, hideEndScreen } from "../screens/screenControl";
-import { stopBat, moveBat } from "../elements/bat";
 import { gameState } from "./gameState";
 
 const detectKeyPress = ({ key }: { key: string }): void => {
   if (gameState.phase == PHASE.GAME) {
     if (key === INPUT.UP) {
-      moveBat(DIRECTION.Left, DIRECTION.Up);
-      gameState.batLeft.upPressed = true;
+      playerBat.changeDirection(DIRECTION.Up);
     } else if (key === INPUT.DOWN) {
-      moveBat(DIRECTION.Left, DIRECTION.Down);
-      gameState.batLeft.downPressed = true;
+      playerBat.changeDirection(DIRECTION.Down);
     } else if (key === INPUT.X) {
       stopAnimation();
     }
@@ -24,7 +21,7 @@ export const initUserInput = () => {
     detectKeyPress(e);
   });
   document.addEventListener("keyup", (e) => {
-    stopBat(e);
+    playerBat.stop(e);
   });
 
   startButton.addEventListener("mousedown", () => {

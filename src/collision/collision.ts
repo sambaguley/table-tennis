@@ -1,6 +1,6 @@
-import { gameState, INITIAL_RIGHT_BAT_STATE } from "../gameControl/gameState";
+import { gameState } from "../gameControl/gameState";
 import { checkScores } from "../gameControl/score";
-import { ball } from "../gameControl/gameControl";
+import { ball, playerBat, opponentBat } from "../gameControl/gameControl";
 import { blip } from "../sound/sound";
 import { makeDelay } from "../common/utils";
 
@@ -10,6 +10,7 @@ import {
   BAT_HEIGHT,
   BAT_WIDTH,
   PHASE,
+  DIRECTION,
 } from "../common/gameConstants";
 
 const randomAngle = (): number => Math.random() * 0.5 - 0.25;
@@ -50,31 +51,30 @@ export const collisionDetection = (): void => {
     }
     if (
       // BALL HITS LEFT BAT
-      ball.x < gameState.batLeft.x + BAT_WIDTH &&
-      ball.x > gameState.batLeft.x &&
-      ball.y < gameState.batLeft.y + BAT_HEIGHT &&
-      ball.y > gameState.batLeft.y
+      ball.x < playerBat.x + BAT_WIDTH &&
+      ball.x > playerBat.x &&
+      ball.y < playerBat.y + BAT_HEIGHT &&
+      ball.y > playerBat.y
     ) {
       playBlip();
       ball.angle = reflectAngle();
     }
     if (
       // BALL HITS RIGHT BAT
-      ball.x < gameState.batRight.x + BAT_WIDTH &&
-      ball.x > gameState.batRight.x &&
-      ball.y < gameState.batRight.y + BAT_HEIGHT &&
-      ball.y > gameState.batRight.y
+      ball.x < opponentBat.x + BAT_WIDTH &&
+      ball.x > opponentBat.x &&
+      ball.y < opponentBat.y + BAT_HEIGHT &&
+      ball.y > opponentBat.y
     ) {
       playBlip();
       ball.angle = reflectAngle();
     }
 
     // OPPONENT BASIC AI
-    if (ball.dx > 0 && ball.dy < 0 && gameState.batRight.y > ball.y) {
-      gameState.batRight.speed = -INITIAL_RIGHT_BAT_STATE.speed;
-    } else if (ball.dx > 0 && ball.dy > 0 && gameState.batRight.y < ball.y) {
-      gameState.batRight.speed = INITIAL_RIGHT_BAT_STATE.speed;
+    if (ball.dx > 0 && ball.dy < 0 && opponentBat.y > ball.y) {
+      opponentBat.changeDirection(DIRECTION.Up);
+    } else if (ball.dx > 0 && ball.dy > 0 && opponentBat.y < ball.y) {
+      opponentBat.changeDirection(DIRECTION.Down);
     }
-    checkScores();
   }
 };

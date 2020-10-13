@@ -1,4 +1,4 @@
-export const VERSION_NUMBER: string = "1.15";
+export const VERSION_NUMBER: string = "1.16";
 
 export enum DIRECTION {
   Up = "UP",
@@ -26,7 +26,6 @@ export const COLOURS = {
 export const FONTS = {
   TITLE: "30px arial",
   SCORE: "60px arial",
-  BODY: "",
   SMALL: "12px arial",
 };
 
