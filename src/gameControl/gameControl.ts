@@ -3,10 +3,8 @@ import {
   DIRECTION,
   GAME_WIDTH,
   GAME_HEIGHT,
-  BAT_SIDE_MARGIN,
   BAT_HEIGHT,
   BAT_WIDTH,
-  WIN_SCORE,
   INPUT,
   PHASE,
   COLOURS,
@@ -14,92 +12,32 @@ import {
   FONTS,
 } from "../common/gameConstants";
 
-import { startScreen, endScreen, resultText, gameCanvas } from "./htmlElements";
+import { startScreen, endScreen, gameCanvas } from "./htmlElements";
 
 import { initUserInput } from "./userInput";
 
-import { TEXT } from "../common/gameText";
+import {
+  gameState,
+  INITIAL_BALL_STATE,
+  INITIAL_LEFT_BAT_STATE,
+  INITIAL_RIGHT_BAT_STATE,
+  randomiseBallAngle,
+  resetElements,
+} from "./gameState";
+
+import { checkScores } from "./score";
 
 let animationRequest;
 let ctx;
 let blip;
+
+blip = new Audio("./blip.wav");
 
 const getDisplacement = (speed: number, angle: number): [number, number] => {
   const dy = speed * Math.cos(angle);
   const dx = speed * Math.sin(angle);
   return [dx, dy];
 };
-
-const randomiseBallAngle = (): number => {
-  const minAngle = 4;
-  const angleSpread = 1;
-  return minAngle + Math.random() * angleSpread;
-};
-
-const INITIAL_BALL_STATE = {
-  x: GAME_WIDTH / 2 - 5,
-  y: GAME_HEIGHT / 2,
-  width: 10,
-  height: 10,
-  speed: 6,
-  acceleration: 0.2,
-  maxSpeed: 8,
-  angle: randomiseBallAngle(),
-  dx: 0,
-  dy: 0,
-};
-
-const INITIAL_LEFT_BAT_STATE = {
-  x: BAT_SIDE_MARGIN,
-  y: GAME_HEIGHT / 2,
-  speed: 6,
-};
-
-const INITIAL_RIGHT_BAT_STATE = {
-  x: GAME_WIDTH - BAT_SIDE_MARGIN,
-  y: GAME_HEIGHT / 2,
-  speed: 3,
-};
-
-const initGameState = () => {
-  const angle = randomiseBallAngle();
-  blip = new Audio("./blip.wav");
-  return {
-    phase: PHASE.START,
-    ball: {
-      x: INITIAL_BALL_STATE.x,
-      y: GAME_HEIGHT / 2,
-      width: INITIAL_BALL_STATE.width,
-      height: INITIAL_BALL_STATE.height,
-      speed: INITIAL_BALL_STATE.speed,
-      acceleration: INITIAL_BALL_STATE.acceleration,
-      maxSpeed: INITIAL_BALL_STATE.maxSpeed,
-      angle: angle,
-      paused: false,
-      dy: 0,
-      dx: 0,
-    },
-    batLeft: {
-      x: INITIAL_LEFT_BAT_STATE.x,
-      y: INITIAL_LEFT_BAT_STATE.y,
-      speed: 0,
-      upPressed: false,
-      downPressed: false,
-    },
-    batRight: {
-      x: INITIAL_RIGHT_BAT_STATE.x,
-      y: INITIAL_RIGHT_BAT_STATE.y,
-      direction: null,
-      speed: 0,
-    },
-    score: {
-      player1: 0,
-      player2: 0,
-    },
-  };
-};
-
-export let gameState = cloneDeep(initGameState());
 
 const clearCanvas = () => {
   ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
@@ -169,20 +107,6 @@ const resetBall = (): void => {
   gameState.ball.x = INITIAL_BALL_STATE.x;
   gameState.ball.y = GAME_HEIGHT / 2;
   gameState.ball.angle = randomiseBallAngle();
-};
-
-const checkScores = (): void => {
-  if (gameState.score.player1 >= WIN_SCORE) {
-    stopAnimation();
-    showEndScreen();
-    gameState.phase = PHASE.END;
-    resultText.innerHTML = TEXT.WIN;
-  } else if (gameState.score.player2 >= WIN_SCORE) {
-    stopAnimation();
-    showEndScreen();
-    gameState.phase = PHASE.END;
-    resultText.innerHTML = TEXT.LOSE;
-  }
 };
 
 const randomAngle = (): number => Math.random() * 0.5 - 0.25;
@@ -257,10 +181,6 @@ const collisionDetection = (): void => {
     }
     checkScores();
   }
-};
-
-const resetElements = (): void => {
-  gameState = cloneDeep(initGameState());
 };
 
 const drawBackground = (): void => {
@@ -377,7 +297,7 @@ export const hideEndScreen = (): void => {
   endScreen.classList.add("hide");
 };
 
-const showEndScreen = (): void => {
+export const showEndScreen = (): void => {
   endScreen.classList.remove("hide");
 };
 

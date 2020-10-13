@@ -1,4 +1,4 @@
-export const VERSION_NUMBER: string = "1.8";
+export const VERSION_NUMBER: string = "1.9";
 
 export enum DIRECTION {
   Up = "UP",

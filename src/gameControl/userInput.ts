@@ -3,7 +3,6 @@ import { startButton, restartButton } from "./htmlElements";
 import { DIRECTION, INPUT, PHASE } from "../common/gameConstants";
 
 import {
-  gameState,
   stopBat,
   init,
   hideStartScreen,
@@ -11,6 +10,8 @@ import {
   moveBat,
   stopAnimation,
 } from "./gameControl";
+
+import { gameState } from "./gameState";
 
 const detectKeyPress = ({ key }: { key: string }): void => {
   if (gameState.phase == PHASE.GAME) {

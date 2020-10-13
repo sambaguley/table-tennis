@@ -117,7 +117,75 @@ parcelRequire = (function (modules, cache, entry, globalName) {
   }
 
   return newRequire;
-})({"../node_modules/lodash/_listCacheClear.js":[function(require,module,exports) {
+})({"common/gameConstants.ts":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.HTML_ELEMENTS = exports.PHASE = exports.INPUT = exports.FONTS = exports.COLOURS = exports.WIN_SCORE = exports.BAT_WIDTH = exports.BAT_HEIGHT = exports.BALL_RADIUS = exports.BAT_SIDE_MARGIN = exports.GAME_HEIGHT = exports.GAME_WIDTH = exports.DIRECTION = exports.VERSION_NUMBER = void 0;
+exports.VERSION_NUMBER = "1.9";
+var DIRECTION;
+
+(function (DIRECTION) {
+  DIRECTION["Up"] = "UP";
+  DIRECTION["Down"] = "DOWN";
+  DIRECTION["Left"] = "LEFT";
+  DIRECTION["Right"] = "RIGHT";
+})(DIRECTION = exports.DIRECTION || (exports.DIRECTION = {}));
+
+exports.GAME_WIDTH = 600;
+exports.GAME_HEIGHT = 400;
+exports.BAT_SIDE_MARGIN = 20;
+exports.BALL_RADIUS = 10;
+exports.BAT_HEIGHT = 60;
+exports.BAT_WIDTH = 8;
+exports.WIN_SCORE = 11;
+exports.COLOURS = {
+  BACKGROUND: "#333",
+  MAIN: "#CCC",
+  white: "white"
+};
+exports.FONTS = {
+  TITLE: "30px arial",
+  SCORE: "60px arial",
+  BODY: "",
+  SMALL: "12px arial"
+};
+exports.INPUT = {
+  UP: "q",
+  DOWN: "a",
+  X: "x"
+};
+exports.PHASE = {
+  START: "START",
+  GAME: "GAME",
+  END: "END"
+};
+exports.HTML_ELEMENTS = {
+  START_BUTTON: "startButton",
+  RESTART_BUTTON: "restartButton",
+  START_SCREEN: "startScreen",
+  END_SCREEN: "endScreen",
+  RESULT_TEXT: "resultText"
+};
+},{}],"gameControl/htmlElements.ts":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.gameCanvas = exports.resultText = exports.endScreen = exports.startScreen = exports.restartButton = exports.startButton = void 0;
+
+var gameConstants_1 = require("../common/gameConstants");
+
+exports.startButton = document.getElementsByClassName(gameConstants_1.HTML_ELEMENTS.START_BUTTON)[0];
+exports.restartButton = document.getElementsByClassName(gameConstants_1.HTML_ELEMENTS.RESTART_BUTTON)[0];
+exports.startScreen = document.getElementById(gameConstants_1.HTML_ELEMENTS.START_SCREEN);
+exports.endScreen = document.getElementById(gameConstants_1.HTML_ELEMENTS.END_SCREEN);
+exports.resultText = document.getElementById(gameConstants_1.HTML_ELEMENTS.RESULT_TEXT);
+exports.gameCanvas = document.getElementById("game");
+},{"../common/gameConstants":"common/gameConstants.ts"}],"../node_modules/lodash/_listCacheClear.js":[function(require,module,exports) {
 /**
  * Removes all key-value entries from the list cache.
  *
@@ -2968,75 +3036,96 @@ function cloneDeep(value) {
 
 module.exports = cloneDeep;
 
-},{"./_baseClone":"../node_modules/lodash/_baseClone.js"}],"common/gameConstants.ts":[function(require,module,exports) {
+},{"./_baseClone":"../node_modules/lodash/_baseClone.js"}],"gameControl/gameState.ts":[function(require,module,exports) {
 "use strict";
+
+var __importDefault = this && this.__importDefault || function (mod) {
+  return mod && mod.__esModule ? mod : {
+    "default": mod
+  };
+};
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.HTML_ELEMENTS = exports.PHASE = exports.INPUT = exports.FONTS = exports.COLOURS = exports.WIN_SCORE = exports.BAT_WIDTH = exports.BAT_HEIGHT = exports.BALL_RADIUS = exports.BAT_SIDE_MARGIN = exports.GAME_HEIGHT = exports.GAME_WIDTH = exports.DIRECTION = exports.VERSION_NUMBER = void 0;
-exports.VERSION_NUMBER = "1.8";
-var DIRECTION;
+exports.resetElements = exports.gameState = exports.initGameState = exports.INITIAL_RIGHT_BAT_STATE = exports.INITIAL_LEFT_BAT_STATE = exports.INITIAL_BALL_STATE = exports.randomiseBallAngle = void 0;
 
-(function (DIRECTION) {
-  DIRECTION["Up"] = "UP";
-  DIRECTION["Down"] = "DOWN";
-  DIRECTION["Left"] = "LEFT";
-  DIRECTION["Right"] = "RIGHT";
-})(DIRECTION = exports.DIRECTION || (exports.DIRECTION = {}));
-
-exports.GAME_WIDTH = 600;
-exports.GAME_HEIGHT = 400;
-exports.BAT_SIDE_MARGIN = 20;
-exports.BALL_RADIUS = 10;
-exports.BAT_HEIGHT = 60;
-exports.BAT_WIDTH = 8;
-exports.WIN_SCORE = 11;
-exports.COLOURS = {
-  BACKGROUND: "#333",
-  MAIN: "#CCC",
-  white: "white"
-};
-exports.FONTS = {
-  TITLE: "30px arial",
-  SCORE: "60px arial",
-  BODY: "",
-  SMALL: "12px arial"
-};
-exports.INPUT = {
-  UP: "q",
-  DOWN: "a",
-  X: "x"
-};
-exports.PHASE = {
-  START: "START",
-  GAME: "GAME",
-  END: "END"
-};
-exports.HTML_ELEMENTS = {
-  START_BUTTON: "startButton",
-  RESTART_BUTTON: "restartButton",
-  START_SCREEN: "startScreen",
-  END_SCREEN: "endScreen",
-  RESULT_TEXT: "resultText"
-};
-},{}],"gameControl/htmlElements.ts":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.gameCanvas = exports.resultText = exports.endScreen = exports.startScreen = exports.restartButton = exports.startButton = void 0;
+var cloneDeep_1 = __importDefault(require("lodash/cloneDeep"));
 
 var gameConstants_1 = require("../common/gameConstants");
 
-exports.startButton = document.getElementsByClassName(gameConstants_1.HTML_ELEMENTS.START_BUTTON)[0];
-exports.restartButton = document.getElementsByClassName(gameConstants_1.HTML_ELEMENTS.RESTART_BUTTON)[0];
-exports.startScreen = document.getElementById(gameConstants_1.HTML_ELEMENTS.START_SCREEN);
-exports.endScreen = document.getElementById(gameConstants_1.HTML_ELEMENTS.END_SCREEN);
-exports.resultText = document.getElementById(gameConstants_1.HTML_ELEMENTS.RESULT_TEXT);
-exports.gameCanvas = document.getElementById("game");
-},{"../common/gameConstants":"common/gameConstants.ts"}],"gameControl/userInput.ts":[function(require,module,exports) {
+exports.randomiseBallAngle = function () {
+  var minAngle = 4;
+  var angleSpread = 1;
+  return minAngle + Math.random() * angleSpread;
+};
+
+exports.INITIAL_BALL_STATE = {
+  x: gameConstants_1.GAME_WIDTH / 2 - 5,
+  y: gameConstants_1.GAME_HEIGHT / 2,
+  width: 10,
+  height: 10,
+  speed: 6,
+  acceleration: 0.2,
+  maxSpeed: 8,
+  angle: exports.randomiseBallAngle(),
+  dx: 0,
+  dy: 0
+};
+exports.INITIAL_LEFT_BAT_STATE = {
+  x: gameConstants_1.BAT_SIDE_MARGIN,
+  y: gameConstants_1.GAME_HEIGHT / 2,
+  speed: 6
+};
+exports.INITIAL_RIGHT_BAT_STATE = {
+  x: gameConstants_1.GAME_WIDTH - gameConstants_1.BAT_SIDE_MARGIN,
+  y: gameConstants_1.GAME_HEIGHT / 2,
+  speed: 3
+};
+
+exports.initGameState = function () {
+  var angle = exports.randomiseBallAngle();
+  return {
+    phase: gameConstants_1.PHASE.START,
+    ball: {
+      x: exports.INITIAL_BALL_STATE.x,
+      y: gameConstants_1.GAME_HEIGHT / 2,
+      width: exports.INITIAL_BALL_STATE.width,
+      height: exports.INITIAL_BALL_STATE.height,
+      speed: exports.INITIAL_BALL_STATE.speed,
+      acceleration: exports.INITIAL_BALL_STATE.acceleration,
+      maxSpeed: exports.INITIAL_BALL_STATE.maxSpeed,
+      angle: angle,
+      paused: false,
+      dy: 0,
+      dx: 0
+    },
+    batLeft: {
+      x: exports.INITIAL_LEFT_BAT_STATE.x,
+      y: exports.INITIAL_LEFT_BAT_STATE.y,
+      speed: 0,
+      upPressed: false,
+      downPressed: false
+    },
+    batRight: {
+      x: exports.INITIAL_RIGHT_BAT_STATE.x,
+      y: exports.INITIAL_RIGHT_BAT_STATE.y,
+      direction: null,
+      speed: 0
+    },
+    score: {
+      player1: 0,
+      player2: 0
+    }
+  };
+};
+
+exports.gameState = cloneDeep_1.default(exports.initGameState());
+
+exports.resetElements = function () {
+  exports.gameState = cloneDeep_1.default(exports.initGameState());
+};
+},{"lodash/cloneDeep":"../node_modules/lodash/cloneDeep.js","../common/gameConstants":"common/gameConstants.ts"}],"gameControl/userInput.ts":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -3050,16 +3139,18 @@ var gameConstants_1 = require("../common/gameConstants");
 
 var gameControl_1 = require("./gameControl");
 
+var gameState_1 = require("./gameState");
+
 var detectKeyPress = function detectKeyPress(_a) {
   var key = _a.key;
 
-  if (gameControl_1.gameState.phase == gameConstants_1.PHASE.GAME) {
+  if (gameState_1.gameState.phase == gameConstants_1.PHASE.GAME) {
     if (key === gameConstants_1.INPUT.UP) {
       gameControl_1.moveBat(gameConstants_1.DIRECTION.Left, gameConstants_1.DIRECTION.Up);
-      gameControl_1.gameState.batLeft.upPressed = true;
+      gameState_1.gameState.batLeft.upPressed = true;
     } else if (key === gameConstants_1.INPUT.DOWN) {
       gameControl_1.moveBat(gameConstants_1.DIRECTION.Left, gameConstants_1.DIRECTION.Down);
-      gameControl_1.gameState.batLeft.downPressed = true;
+      gameState_1.gameState.batLeft.downPressed = true;
     } else if (key === gameConstants_1.INPUT.X) {
       gameControl_1.stopAnimation();
     }
@@ -3082,7 +3173,7 @@ exports.initUserInput = function () {
     gameControl_1.hideEndScreen();
   });
 };
-},{"./htmlElements":"gameControl/htmlElements.ts","../common/gameConstants":"common/gameConstants.ts","./gameControl":"gameControl/gameControl.ts"}],"common/gameText.ts":[function(require,module,exports) {
+},{"./htmlElements":"gameControl/htmlElements.ts","../common/gameConstants":"common/gameConstants.ts","./gameControl":"gameControl/gameControl.ts","./gameState":"gameControl/gameState.ts"}],"common/gameText.ts":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -3093,21 +3184,44 @@ exports.TEXT = {
   WIN: "YOU WIN!!!",
   LOSE: "YOU LOSE!!!"
 };
-},{}],"gameControl/gameControl.ts":[function(require,module,exports) {
+},{}],"gameControl/score.ts":[function(require,module,exports) {
 "use strict";
-
-var __importDefault = this && this.__importDefault || function (mod) {
-  return mod && mod.__esModule ? mod : {
-    "default": mod
-  };
-};
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.hideEndScreen = exports.hideStartScreen = exports.stopAnimation = exports.init = exports.stopBat = exports.moveBat = exports.gameState = void 0;
+exports.checkScores = void 0;
 
-var cloneDeep_1 = __importDefault(require("lodash/cloneDeep"));
+var gameConstants_1 = require("../common/gameConstants");
+
+var gameText_1 = require("../common/gameText");
+
+var htmlElements_1 = require("./htmlElements");
+
+var gameState_1 = require("./gameState");
+
+var gameControl_1 = require("./gameControl");
+
+exports.checkScores = function () {
+  if (gameState_1.gameState.score.player1 >= gameConstants_1.WIN_SCORE) {
+    gameControl_1.stopAnimation();
+    gameControl_1.showEndScreen();
+    gameState_1.gameState.phase = gameConstants_1.PHASE.END;
+    htmlElements_1.resultText.innerHTML = gameText_1.TEXT.WIN;
+  } else if (gameState_1.gameState.score.player2 >= gameConstants_1.WIN_SCORE) {
+    gameControl_1.stopAnimation();
+    gameControl_1.showEndScreen();
+    gameState_1.gameState.phase = gameConstants_1.PHASE.END;
+    htmlElements_1.resultText.innerHTML = gameText_1.TEXT.LOSE;
+  }
+};
+},{"../common/gameConstants":"common/gameConstants.ts","../common/gameText":"common/gameText.ts","./htmlElements":"gameControl/htmlElements.ts","./gameState":"gameControl/gameState.ts","./gameControl":"gameControl/gameControl.ts"}],"gameControl/gameControl.ts":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.showEndScreen = exports.hideEndScreen = exports.hideStartScreen = exports.stopAnimation = exports.init = exports.stopBat = exports.moveBat = void 0;
 
 var gameConstants_1 = require("../common/gameConstants");
 
@@ -3115,86 +3229,20 @@ var htmlElements_1 = require("./htmlElements");
 
 var userInput_1 = require("./userInput");
 
-var gameText_1 = require("../common/gameText");
+var gameState_1 = require("./gameState");
+
+var score_1 = require("./score");
 
 var animationRequest;
 var ctx;
 var blip;
+blip = new Audio("./blip.wav");
 
 var getDisplacement = function getDisplacement(speed, angle) {
   var dy = speed * Math.cos(angle);
   var dx = speed * Math.sin(angle);
   return [dx, dy];
 };
-
-var randomiseBallAngle = function randomiseBallAngle() {
-  var minAngle = 4;
-  var angleSpread = 1;
-  return minAngle + Math.random() * angleSpread;
-};
-
-var INITIAL_BALL_STATE = {
-  x: gameConstants_1.GAME_WIDTH / 2 - 5,
-  y: gameConstants_1.GAME_HEIGHT / 2,
-  width: 10,
-  height: 10,
-  speed: 6,
-  acceleration: 0.2,
-  maxSpeed: 8,
-  angle: randomiseBallAngle(),
-  dx: 0,
-  dy: 0
-};
-var INITIAL_LEFT_BAT_STATE = {
-  x: gameConstants_1.BAT_SIDE_MARGIN,
-  y: gameConstants_1.GAME_HEIGHT / 2,
-  speed: 6
-};
-var INITIAL_RIGHT_BAT_STATE = {
-  x: gameConstants_1.GAME_WIDTH - gameConstants_1.BAT_SIDE_MARGIN,
-  y: gameConstants_1.GAME_HEIGHT / 2,
-  speed: 3
-};
-
-var initGameState = function initGameState() {
-  var angle = randomiseBallAngle();
-  blip = new Audio("./blip.wav");
-  return {
-    phase: gameConstants_1.PHASE.START,
-    ball: {
-      x: INITIAL_BALL_STATE.x,
-      y: gameConstants_1.GAME_HEIGHT / 2,
-      width: INITIAL_BALL_STATE.width,
-      height: INITIAL_BALL_STATE.height,
-      speed: INITIAL_BALL_STATE.speed,
-      acceleration: INITIAL_BALL_STATE.acceleration,
-      maxSpeed: INITIAL_BALL_STATE.maxSpeed,
-      angle: angle,
-      paused: false,
-      dy: 0,
-      dx: 0
-    },
-    batLeft: {
-      x: INITIAL_LEFT_BAT_STATE.x,
-      y: INITIAL_LEFT_BAT_STATE.y,
-      speed: 0,
-      upPressed: false,
-      downPressed: false
-    },
-    batRight: {
-      x: INITIAL_RIGHT_BAT_STATE.x,
-      y: INITIAL_RIGHT_BAT_STATE.y,
-      direction: null,
-      speed: 0
-    },
-    score: {
-      player1: 0,
-      player2: 0
-    }
-  };
-};
-
-exports.gameState = cloneDeep_1.default(initGameState());
 
 var clearCanvas = function clearCanvas() {
   ctx.clearRect(0, 0, gameConstants_1.GAME_WIDTH, gameConstants_1.GAME_HEIGHT);
@@ -3217,9 +3265,9 @@ var drawScore = function drawScore() {
   ctx.strokeStyle = gameConstants_1.COLOURS.white;
   ctx.font = gameConstants_1.FONTS.SCORE;
   ctx.textAlign = "right";
-  ctx.fillText(exports.gameState.score.player1, gameConstants_1.GAME_WIDTH / 2 - 20, 60);
+  ctx.fillText(gameState_1.gameState.score.player1, gameConstants_1.GAME_WIDTH / 2 - 20, 60);
   ctx.textAlign = "left";
-  ctx.fillText(exports.gameState.score.player2, gameConstants_1.GAME_WIDTH / 2 + 20, 60);
+  ctx.fillText(gameState_1.gameState.score.player2, gameConstants_1.GAME_WIDTH / 2 + 20, 60);
 };
 
 var drawVersionNumber = function drawVersionNumber() {
@@ -3231,7 +3279,7 @@ var drawVersionNumber = function drawVersionNumber() {
 
 var drawBall = function drawBall() {
   ctx.fillStyle = gameConstants_1.COLOURS.MAIN;
-  ctx.fillRect(exports.gameState.ball.x, exports.gameState.ball.y, exports.gameState.ball.width, exports.gameState.ball.height);
+  ctx.fillRect(gameState_1.gameState.ball.x, gameState_1.gameState.ball.y, gameState_1.gameState.ball.width, gameState_1.gameState.ball.height);
   ctx.fill();
 };
 
@@ -3239,31 +3287,17 @@ var drawBat = function drawBat(batDirection) {
   ctx.fillStyle = gameConstants_1.COLOURS.MAIN;
 
   if (batDirection === gameConstants_1.DIRECTION.Left) {
-    ctx.fillRect(exports.gameState.batLeft.x, exports.gameState.batLeft.y, gameConstants_1.BAT_WIDTH, gameConstants_1.BAT_HEIGHT);
+    ctx.fillRect(gameState_1.gameState.batLeft.x, gameState_1.gameState.batLeft.y, gameConstants_1.BAT_WIDTH, gameConstants_1.BAT_HEIGHT);
   } else {
-    ctx.fillRect(exports.gameState.batRight.x, exports.gameState.batRight.y, gameConstants_1.BAT_WIDTH, gameConstants_1.BAT_HEIGHT);
+    ctx.fillRect(gameState_1.gameState.batRight.x, gameState_1.gameState.batRight.y, gameConstants_1.BAT_WIDTH, gameConstants_1.BAT_HEIGHT);
   }
 };
 
 var resetBall = function resetBall() {
-  exports.gameState.ball.paused = false;
-  exports.gameState.ball.x = INITIAL_BALL_STATE.x;
-  exports.gameState.ball.y = gameConstants_1.GAME_HEIGHT / 2;
-  exports.gameState.ball.angle = randomiseBallAngle();
-};
-
-var checkScores = function checkScores() {
-  if (exports.gameState.score.player1 >= gameConstants_1.WIN_SCORE) {
-    exports.stopAnimation();
-    showEndScreen();
-    exports.gameState.phase = gameConstants_1.PHASE.END;
-    htmlElements_1.resultText.innerHTML = gameText_1.TEXT.WIN;
-  } else if (exports.gameState.score.player2 >= gameConstants_1.WIN_SCORE) {
-    exports.stopAnimation();
-    showEndScreen();
-    exports.gameState.phase = gameConstants_1.PHASE.END;
-    htmlElements_1.resultText.innerHTML = gameText_1.TEXT.LOSE;
-  }
+  gameState_1.gameState.ball.paused = false;
+  gameState_1.gameState.ball.x = gameState_1.INITIAL_BALL_STATE.x;
+  gameState_1.gameState.ball.y = gameConstants_1.GAME_HEIGHT / 2;
+  gameState_1.gameState.ball.angle = gameState_1.randomiseBallAngle();
 };
 
 var randomAngle = function randomAngle() {
@@ -3271,67 +3305,63 @@ var randomAngle = function randomAngle() {
 };
 
 var reflectAngle = function reflectAngle() {
-  return exports.gameState.ball.angle + Math.PI + randomAngle();
+  return gameState_1.gameState.ball.angle + Math.PI + randomAngle();
 };
 
 var collisionDetection = function collisionDetection() {
-  if (exports.gameState.phase == gameConstants_1.PHASE.GAME) {
-    if (exports.gameState.ball.x < 0 || exports.gameState.ball.x > gameConstants_1.GAME_WIDTH) {
+  if (gameState_1.gameState.phase == gameConstants_1.PHASE.GAME) {
+    if (gameState_1.gameState.ball.x < 0 || gameState_1.gameState.ball.x > gameConstants_1.GAME_WIDTH) {
       // BALL MOVES OUTSIDE LEFT OR RIGHT
-      if (exports.gameState.ball.x < 0 && !exports.gameState.ball.paused) {
-        if (exports.gameState.ball.speed < exports.gameState.ball.maxSpeed) {
-          exports.gameState.ball.speed = exports.gameState.ball.speed + exports.gameState.ball.acceleration;
+      if (gameState_1.gameState.ball.x < 0 && !gameState_1.gameState.ball.paused) {
+        if (gameState_1.gameState.ball.speed < gameState_1.gameState.ball.maxSpeed) {
+          gameState_1.gameState.ball.speed = gameState_1.gameState.ball.speed + gameState_1.gameState.ball.acceleration;
         }
 
-        exports.gameState.score.player2 += 1;
-        exports.gameState.ball.paused = true;
+        gameState_1.gameState.score.player2 += 1;
+        gameState_1.gameState.ball.paused = true;
         playBlip();
         makeDelay(1000, resetBall);
       }
 
-      if (exports.gameState.ball.x > gameConstants_1.GAME_WIDTH && !exports.gameState.ball.paused) {
-        if (exports.gameState.ball.speed < exports.gameState.ball.maxSpeed) {
-          exports.gameState.ball.speed = exports.gameState.ball.speed + exports.gameState.ball.acceleration;
+      if (gameState_1.gameState.ball.x > gameConstants_1.GAME_WIDTH && !gameState_1.gameState.ball.paused) {
+        if (gameState_1.gameState.ball.speed < gameState_1.gameState.ball.maxSpeed) {
+          gameState_1.gameState.ball.speed = gameState_1.gameState.ball.speed + gameState_1.gameState.ball.acceleration;
         }
 
-        exports.gameState.score.player1 += 1;
-        exports.gameState.ball.paused = true;
+        gameState_1.gameState.score.player1 += 1;
+        gameState_1.gameState.ball.paused = true;
         playBlip();
         makeDelay(1000, resetBall);
       }
     }
 
-    if (exports.gameState.ball.y > gameConstants_1.GAME_HEIGHT - 10 || exports.gameState.ball.y < 10) {
+    if (gameState_1.gameState.ball.y > gameConstants_1.GAME_HEIGHT - 10 || gameState_1.gameState.ball.y < 10) {
       // BALL BOUNCES OFF TOP OR BOTTOM
       playBlip();
-      exports.gameState.ball.angle = exports.gameState.ball.angle + Math.PI / 2;
+      gameState_1.gameState.ball.angle = gameState_1.gameState.ball.angle + Math.PI / 2;
     }
 
     if ( // BALL HITS LEFT BAT
-    exports.gameState.ball.x < exports.gameState.batLeft.x + gameConstants_1.BAT_WIDTH && exports.gameState.ball.x > exports.gameState.batLeft.x && exports.gameState.ball.y < exports.gameState.batLeft.y + gameConstants_1.BAT_HEIGHT && exports.gameState.ball.y > exports.gameState.batLeft.y) {
+    gameState_1.gameState.ball.x < gameState_1.gameState.batLeft.x + gameConstants_1.BAT_WIDTH && gameState_1.gameState.ball.x > gameState_1.gameState.batLeft.x && gameState_1.gameState.ball.y < gameState_1.gameState.batLeft.y + gameConstants_1.BAT_HEIGHT && gameState_1.gameState.ball.y > gameState_1.gameState.batLeft.y) {
       playBlip();
-      exports.gameState.ball.angle = reflectAngle();
+      gameState_1.gameState.ball.angle = reflectAngle();
     }
 
     if ( // BALL HITS RIGHT BAT
-    exports.gameState.ball.x < exports.gameState.batRight.x + gameConstants_1.BAT_WIDTH && exports.gameState.ball.x > exports.gameState.batRight.x && exports.gameState.ball.y < exports.gameState.batRight.y + gameConstants_1.BAT_HEIGHT && exports.gameState.ball.y > exports.gameState.batRight.y) {
+    gameState_1.gameState.ball.x < gameState_1.gameState.batRight.x + gameConstants_1.BAT_WIDTH && gameState_1.gameState.ball.x > gameState_1.gameState.batRight.x && gameState_1.gameState.ball.y < gameState_1.gameState.batRight.y + gameConstants_1.BAT_HEIGHT && gameState_1.gameState.ball.y > gameState_1.gameState.batRight.y) {
       playBlip();
-      exports.gameState.ball.angle = reflectAngle();
+      gameState_1.gameState.ball.angle = reflectAngle();
     } // OPPONENT BASIC AI
 
 
-    if (exports.gameState.ball.dx > 0 && exports.gameState.ball.dy < 0 && exports.gameState.batRight.y > exports.gameState.ball.y) {
-      exports.gameState.batRight.speed = -INITIAL_RIGHT_BAT_STATE.speed;
-    } else if (exports.gameState.ball.dx > 0 && exports.gameState.ball.dy > 0 && exports.gameState.batRight.y < exports.gameState.ball.y) {
-      exports.gameState.batRight.speed = INITIAL_RIGHT_BAT_STATE.speed;
+    if (gameState_1.gameState.ball.dx > 0 && gameState_1.gameState.ball.dy < 0 && gameState_1.gameState.batRight.y > gameState_1.gameState.ball.y) {
+      gameState_1.gameState.batRight.speed = -gameState_1.INITIAL_RIGHT_BAT_STATE.speed;
+    } else if (gameState_1.gameState.ball.dx > 0 && gameState_1.gameState.ball.dy > 0 && gameState_1.gameState.batRight.y < gameState_1.gameState.ball.y) {
+      gameState_1.gameState.batRight.speed = gameState_1.INITIAL_RIGHT_BAT_STATE.speed;
     }
 
-    checkScores();
+    score_1.checkScores();
   }
-};
-
-var resetElements = function resetElements() {
-  exports.gameState = cloneDeep_1.default(initGameState());
 };
 
 var drawBackground = function drawBackground() {
@@ -3346,44 +3376,44 @@ var makeDelay = function makeDelay(timeDelay, fn) {
 };
 
 var moveElements = function moveElements() {
-  if (exports.gameState.phase == gameConstants_1.PHASE.GAME) {
-    var _a = getDisplacement(exports.gameState.ball.speed, exports.gameState.ball.angle),
+  if (gameState_1.gameState.phase == gameConstants_1.PHASE.GAME) {
+    var _a = getDisplacement(gameState_1.gameState.ball.speed, gameState_1.gameState.ball.angle),
         dx = _a[0],
         dy = _a[1];
 
-    exports.gameState.ball.dx = dx;
-    exports.gameState.ball.dy = dy;
-    exports.gameState.ball.x = exports.gameState.ball.x + dx;
-    exports.gameState.ball.y = exports.gameState.ball.y + dy;
+    gameState_1.gameState.ball.dx = dx;
+    gameState_1.gameState.ball.dy = dy;
+    gameState_1.gameState.ball.x = gameState_1.gameState.ball.x + dx;
+    gameState_1.gameState.ball.y = gameState_1.gameState.ball.y + dy;
 
     if ( // STOP LEFT BAT GOING OFF SCREEN
-    gameConstants_1.BAT_HEIGHT + exports.gameState.batLeft.y > gameConstants_1.GAME_HEIGHT) {
-      exports.gameState.batLeft.y = gameConstants_1.GAME_HEIGHT - gameConstants_1.BAT_HEIGHT;
-    } else if (exports.gameState.batLeft.y < 0) {
-      exports.gameState.batLeft.y = 0;
+    gameConstants_1.BAT_HEIGHT + gameState_1.gameState.batLeft.y > gameConstants_1.GAME_HEIGHT) {
+      gameState_1.gameState.batLeft.y = gameConstants_1.GAME_HEIGHT - gameConstants_1.BAT_HEIGHT;
+    } else if (gameState_1.gameState.batLeft.y < 0) {
+      gameState_1.gameState.batLeft.y = 0;
     } else {
-      exports.gameState.batLeft.y = exports.gameState.batLeft.y + exports.gameState.batLeft.speed;
+      gameState_1.gameState.batLeft.y = gameState_1.gameState.batLeft.y + gameState_1.gameState.batLeft.speed;
     }
 
     if ( // STOP RIGHT BAT GOING OFF SCREEN
-    gameConstants_1.BAT_HEIGHT + exports.gameState.batRight.y > gameConstants_1.GAME_HEIGHT) {
-      exports.gameState.batRight.y = gameConstants_1.GAME_HEIGHT - gameConstants_1.BAT_HEIGHT;
-    } else if (exports.gameState.batRight.y < 0) {
-      exports.gameState.batRight.y = 0;
+    gameConstants_1.BAT_HEIGHT + gameState_1.gameState.batRight.y > gameConstants_1.GAME_HEIGHT) {
+      gameState_1.gameState.batRight.y = gameConstants_1.GAME_HEIGHT - gameConstants_1.BAT_HEIGHT;
+    } else if (gameState_1.gameState.batRight.y < 0) {
+      gameState_1.gameState.batRight.y = 0;
     } else {
-      exports.gameState.batRight.y = exports.gameState.batRight.y + exports.gameState.batRight.speed;
+      gameState_1.gameState.batRight.y = gameState_1.gameState.batRight.y + gameState_1.gameState.batRight.speed;
     }
 
-    exports.gameState.batRight.y = exports.gameState.batRight.y + exports.gameState.batRight.speed;
+    gameState_1.gameState.batRight.y = gameState_1.gameState.batRight.y + gameState_1.gameState.batRight.speed;
   }
 };
 
 exports.moveBat = function (side, direction) {
   if (side === gameConstants_1.DIRECTION.Left) {
     if (direction === gameConstants_1.DIRECTION.Down) {
-      exports.gameState.batLeft.speed = INITIAL_LEFT_BAT_STATE.speed;
+      gameState_1.gameState.batLeft.speed = gameState_1.INITIAL_LEFT_BAT_STATE.speed;
     } else if (direction === gameConstants_1.DIRECTION.Up) {
-      exports.gameState.batLeft.speed = -INITIAL_LEFT_BAT_STATE.speed;
+      gameState_1.gameState.batLeft.speed = -gameState_1.INITIAL_LEFT_BAT_STATE.speed;
     }
   }
 };
@@ -3392,13 +3422,13 @@ exports.stopBat = function (_a) {
   var key = _a.key;
 
   if (key === gameConstants_1.INPUT.DOWN) {
-    exports.gameState.batLeft.downPressed = false;
+    gameState_1.gameState.batLeft.downPressed = false;
   } else if (key === gameConstants_1.INPUT.UP) {
-    exports.gameState.batLeft.upPressed = false;
+    gameState_1.gameState.batLeft.upPressed = false;
   }
 
-  if (!exports.gameState.batLeft.upPressed && !exports.gameState.batLeft.downPressed) {
-    exports.gameState.batLeft.speed = 0;
+  if (!gameState_1.gameState.batLeft.upPressed && !gameState_1.gameState.batLeft.downPressed) {
+    gameState_1.gameState.batLeft.speed = 0;
   }
 };
 
@@ -3422,7 +3452,7 @@ var gameLoop = function gameLoop() {
 
 exports.init = function () {
   ctx = htmlElements_1.gameCanvas.getContext("2d");
-  exports.gameState.phase = gameConstants_1.PHASE.GAME;
+  gameState_1.gameState.phase = gameConstants_1.PHASE.GAME;
 
   if (!animationRequest) {
     startAnimation();
@@ -3434,7 +3464,7 @@ var startAnimation = function startAnimation() {
 };
 
 exports.stopAnimation = function () {
-  resetElements();
+  gameState_1.resetElements();
   cancelAnimationFrame(animationRequest);
 };
 
@@ -3446,12 +3476,12 @@ exports.hideEndScreen = function () {
   htmlElements_1.endScreen.classList.add("hide");
 };
 
-var showEndScreen = function showEndScreen() {
+exports.showEndScreen = function () {
   htmlElements_1.endScreen.classList.remove("hide");
 };
 
 userInput_1.initUserInput();
-},{"lodash/cloneDeep":"../node_modules/lodash/cloneDeep.js","../common/gameConstants":"common/gameConstants.ts","./htmlElements":"gameControl/htmlElements.ts","./userInput":"gameControl/userInput.ts","../common/gameText":"common/gameText.ts"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"../common/gameConstants":"common/gameConstants.ts","./htmlElements":"gameControl/htmlElements.ts","./userInput":"gameControl/userInput.ts","./gameState":"gameControl/gameState.ts","./score":"gameControl/score.ts"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
