@@ -1,4 +1,4 @@
-import { HTML_ELEMENTS } from "../common/gameConstants";
+import { HTML_ELEMENTS } from "./gameConstants";
 
 export const startButton = document.getElementsByClassName(
   HTML_ELEMENTS.START_BUTTON

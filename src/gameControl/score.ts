@@ -6,9 +6,10 @@ import {
   FONTS,
 } from "../common/gameConstants";
 import { TEXT } from "../common/gameText";
-import { resultText } from "./htmlElements";
+import { resultText } from "../common/htmlElements";
 import { gameState } from "./gameState";
-import { stopAnimation, showEndScreen, ctx } from "./gameControl";
+import { stopAnimation, ctx } from "./gameControl";
+import { showEndScreen } from "../screens/screenControl";
 
 export const checkScores = (): void => {
   if (gameState.score.player1 >= WIN_SCORE) {

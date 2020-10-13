@@ -1,16 +1,8 @@
-import { startButton, restartButton } from "./htmlElements";
-
+import { startButton, restartButton } from "../common/htmlElements";
 import { DIRECTION, INPUT, PHASE } from "../common/gameConstants";
-
-import {
-  init,
-  hideStartScreen,
-  hideEndScreen,
-  stopAnimation,
-} from "./gameControl";
-
+import { init, stopAnimation } from "./gameControl";
+import { hideStartScreen, hideEndScreen } from "../screens/screenControl";
 import { stopBat, moveBat } from "../elements/bat";
-
 import { gameState } from "./gameState";
 
 const detectKeyPress = ({ key }: { key: string }): void => {

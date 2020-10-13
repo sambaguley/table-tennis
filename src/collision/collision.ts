@@ -1,6 +1,6 @@
 import { gameState, INITIAL_RIGHT_BAT_STATE } from "../gameControl/gameState";
 import { checkScores } from "../gameControl/score";
-import { blip } from "../gameControl/gameControl";
+import { blip } from "../sound/sound";
 import { makeDelay } from "../common/utils";
 
 import {

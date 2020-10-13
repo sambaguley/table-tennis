@@ -124,7 +124,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.HTML_ELEMENTS = exports.PHASE = exports.INPUT = exports.FONTS = exports.COLOURS = exports.WIN_SCORE = exports.BAT_WIDTH = exports.BAT_HEIGHT = exports.BALL_RADIUS = exports.BAT_SIDE_MARGIN = exports.GAME_HEIGHT = exports.GAME_WIDTH = exports.DIRECTION = exports.VERSION_NUMBER = void 0;
-exports.VERSION_NUMBER = "1.13";
+exports.VERSION_NUMBER = "1.14";
 var DIRECTION;
 
 (function (DIRECTION) {
@@ -169,7 +169,7 @@ exports.HTML_ELEMENTS = {
   END_SCREEN: "endScreen",
   RESULT_TEXT: "resultText"
 };
-},{}],"gameControl/htmlElements.ts":[function(require,module,exports) {
+},{}],"common/htmlElements.ts":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -177,7 +177,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.gameCanvas = exports.resultText = exports.endScreen = exports.startScreen = exports.restartButton = exports.startButton = void 0;
 
-var gameConstants_1 = require("../common/gameConstants");
+var gameConstants_1 = require("./gameConstants");
 
 exports.startButton = document.getElementsByClassName(gameConstants_1.HTML_ELEMENTS.START_BUTTON)[0];
 exports.restartButton = document.getElementsByClassName(gameConstants_1.HTML_ELEMENTS.RESTART_BUTTON)[0];
@@ -185,7 +185,28 @@ exports.startScreen = document.getElementById(gameConstants_1.HTML_ELEMENTS.STAR
 exports.endScreen = document.getElementById(gameConstants_1.HTML_ELEMENTS.END_SCREEN);
 exports.resultText = document.getElementById(gameConstants_1.HTML_ELEMENTS.RESULT_TEXT);
 exports.gameCanvas = document.getElementById("game");
-},{"../common/gameConstants":"common/gameConstants.ts"}],"../node_modules/lodash/_listCacheClear.js":[function(require,module,exports) {
+},{"./gameConstants":"common/gameConstants.ts"}],"screens/screenControl.ts":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.showEndScreen = exports.hideEndScreen = exports.hideStartScreen = void 0;
+
+var htmlElements_1 = require("../common/htmlElements");
+
+exports.hideStartScreen = function () {
+  htmlElements_1.startScreen.classList.add("hide");
+};
+
+exports.hideEndScreen = function () {
+  htmlElements_1.endScreen.classList.add("hide");
+};
+
+exports.showEndScreen = function () {
+  htmlElements_1.endScreen.classList.remove("hide");
+};
+},{"../common/htmlElements":"common/htmlElements.ts"}],"../node_modules/lodash/_listCacheClear.js":[function(require,module,exports) {
 /**
  * Removes all key-value entries from the list cache.
  *
@@ -3180,11 +3201,13 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.initUserInput = void 0;
 
-var htmlElements_1 = require("./htmlElements");
+var htmlElements_1 = require("../common/htmlElements");
 
 var gameConstants_1 = require("../common/gameConstants");
 
 var gameControl_1 = require("./gameControl");
+
+var screenControl_1 = require("../screens/screenControl");
 
 var bat_1 = require("../elements/bat");
 
@@ -3215,14 +3238,14 @@ exports.initUserInput = function () {
   });
   htmlElements_1.startButton.addEventListener("mousedown", function () {
     gameControl_1.init();
-    gameControl_1.hideStartScreen();
+    screenControl_1.hideStartScreen();
   });
   htmlElements_1.restartButton.addEventListener("mousedown", function () {
     gameControl_1.init();
-    gameControl_1.hideEndScreen();
+    screenControl_1.hideEndScreen();
   });
 };
-},{"./htmlElements":"gameControl/htmlElements.ts","../common/gameConstants":"common/gameConstants.ts","./gameControl":"gameControl/gameControl.ts","../elements/bat":"elements/bat.ts","./gameState":"gameControl/gameState.ts"}],"common/gameText.ts":[function(require,module,exports) {
+},{"../common/htmlElements":"common/htmlElements.ts","../common/gameConstants":"common/gameConstants.ts","./gameControl":"gameControl/gameControl.ts","../screens/screenControl":"screens/screenControl.ts","../elements/bat":"elements/bat.ts","./gameState":"gameControl/gameState.ts"}],"common/gameText.ts":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -3245,21 +3268,23 @@ var gameConstants_1 = require("../common/gameConstants");
 
 var gameText_1 = require("../common/gameText");
 
-var htmlElements_1 = require("./htmlElements");
+var htmlElements_1 = require("../common/htmlElements");
 
 var gameState_1 = require("./gameState");
 
 var gameControl_1 = require("./gameControl");
 
+var screenControl_1 = require("../screens/screenControl");
+
 exports.checkScores = function () {
   if (gameState_1.gameState.score.player1 >= gameConstants_1.WIN_SCORE) {
     gameControl_1.stopAnimation();
-    gameControl_1.showEndScreen();
+    screenControl_1.showEndScreen();
     gameState_1.gameState.phase = gameConstants_1.PHASE.END;
     htmlElements_1.resultText.innerHTML = gameText_1.TEXT.WIN;
   } else if (gameState_1.gameState.score.player2 >= gameConstants_1.WIN_SCORE) {
     gameControl_1.stopAnimation();
-    gameControl_1.showEndScreen();
+    screenControl_1.showEndScreen();
     gameState_1.gameState.phase = gameConstants_1.PHASE.END;
     htmlElements_1.resultText.innerHTML = gameText_1.TEXT.LOSE;
   }
@@ -3273,7 +3298,15 @@ exports.drawScore = function () {
   gameControl_1.ctx.textAlign = "left";
   gameControl_1.ctx.fillText(gameState_1.gameState.score.player2, gameConstants_1.GAME_WIDTH / 2 + 20, 60);
 };
-},{"../common/gameConstants":"common/gameConstants.ts","../common/gameText":"common/gameText.ts","./htmlElements":"gameControl/htmlElements.ts","./gameState":"gameControl/gameState.ts","./gameControl":"gameControl/gameControl.ts"}],"common/utils.ts":[function(require,module,exports) {
+},{"../common/gameConstants":"common/gameConstants.ts","../common/gameText":"common/gameText.ts","../common/htmlElements":"common/htmlElements.ts","./gameState":"gameControl/gameState.ts","./gameControl":"gameControl/gameControl.ts","../screens/screenControl":"screens/screenControl.ts"}],"sound/sound.ts":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.blip = void 0;
+exports.blip = new Audio("./blip.wav");
+},{}],"common/utils.ts":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -3324,7 +3357,7 @@ var gameState_1 = require("../gameControl/gameState");
 
 var score_1 = require("../gameControl/score");
 
-var gameControl_1 = require("../gameControl/gameControl");
+var sound_1 = require("../sound/sound");
 
 var utils_1 = require("../common/utils");
 
@@ -3341,7 +3374,7 @@ var reflectAngle = function reflectAngle() {
 };
 
 var playBlip = function playBlip() {
-  gameControl_1.blip.play();
+  sound_1.blip.play();
 };
 
 exports.collisionDetection = function () {
@@ -3399,7 +3432,7 @@ exports.collisionDetection = function () {
     score_1.checkScores();
   }
 };
-},{"../gameControl/gameState":"gameControl/gameState.ts","../gameControl/score":"gameControl/score.ts","../gameControl/gameControl":"gameControl/gameControl.ts","../common/utils":"common/utils.ts","../common/gameConstants":"common/gameConstants.ts","../elements/ball":"elements/ball.ts"}],"elements/table.ts":[function(require,module,exports) {
+},{"../gameControl/gameState":"gameControl/gameState.ts","../gameControl/score":"gameControl/score.ts","../sound/sound":"sound/sound.ts","../common/utils":"common/utils.ts","../common/gameConstants":"common/gameConstants.ts","../elements/ball":"elements/ball.ts"}],"elements/table.ts":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -3435,34 +3468,17 @@ exports.drawBackground = function () {
   gameControl_1.ctx.fillStyle = gameConstants_1.COLOURS.BACKGROUND;
   gameControl_1.ctx.fillRect(0, 0, gameConstants_1.GAME_WIDTH, gameConstants_1.GAME_HEIGHT);
 };
-},{"../gameControl/gameControl":"gameControl/gameControl.ts","../common/gameConstants":"common/gameConstants.ts"}],"gameControl/gameControl.ts":[function(require,module,exports) {
+},{"../gameControl/gameControl":"gameControl/gameControl.ts","../common/gameConstants":"common/gameConstants.ts"}],"movement/movement.ts":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.showEndScreen = exports.hideEndScreen = exports.hideStartScreen = exports.stopAnimation = exports.init = exports.blip = exports.ctx = void 0;
+exports.moveElements = void 0;
+
+var gameState_1 = require("../gameControl/gameState");
 
 var gameConstants_1 = require("../common/gameConstants");
-
-var htmlElements_1 = require("./htmlElements");
-
-var userInput_1 = require("./userInput");
-
-var gameState_1 = require("./gameState");
-
-var collision_1 = require("../collision/collision");
-
-var bat_1 = require("../elements/bat");
-
-var ball_1 = require("../elements/ball");
-
-var table_1 = require("../elements/table");
-
-var score_1 = require("./score");
-
-var animationRequest;
-exports.blip = new Audio("./blip.wav");
 
 var getDisplacement = function getDisplacement(speed, angle) {
   var dy = speed * Math.cos(angle);
@@ -3470,7 +3486,7 @@ var getDisplacement = function getDisplacement(speed, angle) {
   return [dx, dy];
 };
 
-var moveElements = function moveElements() {
+exports.moveElements = function () {
   if (gameState_1.gameState.phase == gameConstants_1.PHASE.GAME) {
     var _a = getDisplacement(gameState_1.gameState.ball.speed, gameState_1.gameState.ball.angle),
         dx = _a[0],
@@ -3502,6 +3518,35 @@ var moveElements = function moveElements() {
     gameState_1.gameState.batRight.y = gameState_1.gameState.batRight.y + gameState_1.gameState.batRight.speed;
   }
 };
+},{"../gameControl/gameState":"gameControl/gameState.ts","../common/gameConstants":"common/gameConstants.ts"}],"gameControl/gameControl.ts":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.stopAnimation = exports.init = exports.ctx = void 0;
+
+var gameConstants_1 = require("../common/gameConstants");
+
+var htmlElements_1 = require("../common/htmlElements");
+
+var userInput_1 = require("./userInput");
+
+var gameState_1 = require("./gameState");
+
+var collision_1 = require("../collision/collision");
+
+var bat_1 = require("../elements/bat");
+
+var ball_1 = require("../elements/ball");
+
+var table_1 = require("../elements/table");
+
+var score_1 = require("./score");
+
+var movement_1 = require("../movement/movement");
+
+var animationRequest;
 
 var drawGameElements = function drawGameElements() {
   table_1.clearCanvas();
@@ -3515,7 +3560,7 @@ var drawGameElements = function drawGameElements() {
 };
 
 var gameLoop = function gameLoop() {
-  moveElements();
+  movement_1.moveElements();
   drawGameElements();
   collision_1.collisionDetection();
   animationRequest = requestAnimationFrame(gameLoop);
@@ -3539,20 +3584,8 @@ exports.stopAnimation = function () {
   cancelAnimationFrame(animationRequest);
 };
 
-exports.hideStartScreen = function () {
-  htmlElements_1.startScreen.classList.add("hide");
-};
-
-exports.hideEndScreen = function () {
-  htmlElements_1.endScreen.classList.add("hide");
-};
-
-exports.showEndScreen = function () {
-  htmlElements_1.endScreen.classList.remove("hide");
-};
-
 userInput_1.initUserInput();
-},{"../common/gameConstants":"common/gameConstants.ts","./htmlElements":"gameControl/htmlElements.ts","./userInput":"gameControl/userInput.ts","./gameState":"gameControl/gameState.ts","../collision/collision":"collision/collision.ts","../elements/bat":"elements/bat.ts","../elements/ball":"elements/ball.ts","../elements/table":"elements/table.ts","./score":"gameControl/score.ts"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"../common/gameConstants":"common/gameConstants.ts","../common/htmlElements":"common/htmlElements.ts","./userInput":"gameControl/userInput.ts","./gameState":"gameControl/gameState.ts","../collision/collision":"collision/collision.ts","../elements/bat":"elements/bat.ts","../elements/ball":"elements/ball.ts","../elements/table":"elements/table.ts","./score":"gameControl/score.ts","../movement/movement":"movement/movement.ts"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
