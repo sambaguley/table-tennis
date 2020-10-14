@@ -2879,7 +2879,8 @@ var Stack = require('./_Stack'),
     isMap = require('./isMap'),
     isObject = require('./isObject'),
     isSet = require('./isSet'),
-    keys = require('./keys');
+    keys = require('./keys'),
+    keysIn = require('./keysIn');
 
 /** Used to compose bitmasks for cloning. */
 var CLONE_DEEP_FLAG = 1,
@@ -3025,7 +3026,7 @@ function baseClone(value, bitmask, customizer, key, object, stack) {
 
 module.exports = baseClone;
 
-},{"./_Stack":"../node_modules/lodash/_Stack.js","./_arrayEach":"../node_modules/lodash/_arrayEach.js","./_assignValue":"../node_modules/lodash/_assignValue.js","./_baseAssign":"../node_modules/lodash/_baseAssign.js","./_baseAssignIn":"../node_modules/lodash/_baseAssignIn.js","./_cloneBuffer":"../node_modules/lodash/_cloneBuffer.js","./_copyArray":"../node_modules/lodash/_copyArray.js","./_copySymbols":"../node_modules/lodash/_copySymbols.js","./_copySymbolsIn":"../node_modules/lodash/_copySymbolsIn.js","./_getAllKeys":"../node_modules/lodash/_getAllKeys.js","./_getAllKeysIn":"../node_modules/lodash/_getAllKeysIn.js","./_getTag":"../node_modules/lodash/_getTag.js","./_initCloneArray":"../node_modules/lodash/_initCloneArray.js","./_initCloneByTag":"../node_modules/lodash/_initCloneByTag.js","./_initCloneObject":"../node_modules/lodash/_initCloneObject.js","./isArray":"../node_modules/lodash/isArray.js","./isBuffer":"../node_modules/lodash/isBuffer.js","./isMap":"../node_modules/lodash/isMap.js","./isObject":"../node_modules/lodash/isObject.js","./isSet":"../node_modules/lodash/isSet.js","./keys":"../node_modules/lodash/keys.js"}],"../node_modules/lodash/cloneDeep.js":[function(require,module,exports) {
+},{"./_Stack":"../node_modules/lodash/_Stack.js","./_arrayEach":"../node_modules/lodash/_arrayEach.js","./_assignValue":"../node_modules/lodash/_assignValue.js","./_baseAssign":"../node_modules/lodash/_baseAssign.js","./_baseAssignIn":"../node_modules/lodash/_baseAssignIn.js","./_cloneBuffer":"../node_modules/lodash/_cloneBuffer.js","./_copyArray":"../node_modules/lodash/_copyArray.js","./_copySymbols":"../node_modules/lodash/_copySymbols.js","./_copySymbolsIn":"../node_modules/lodash/_copySymbolsIn.js","./_getAllKeys":"../node_modules/lodash/_getAllKeys.js","./_getAllKeysIn":"../node_modules/lodash/_getAllKeysIn.js","./_getTag":"../node_modules/lodash/_getTag.js","./_initCloneArray":"../node_modules/lodash/_initCloneArray.js","./_initCloneByTag":"../node_modules/lodash/_initCloneByTag.js","./_initCloneObject":"../node_modules/lodash/_initCloneObject.js","./isArray":"../node_modules/lodash/isArray.js","./isBuffer":"../node_modules/lodash/isBuffer.js","./isMap":"../node_modules/lodash/isMap.js","./isObject":"../node_modules/lodash/isObject.js","./isSet":"../node_modules/lodash/isSet.js","./keys":"../node_modules/lodash/keys.js","./keysIn":"../node_modules/lodash/keysIn.js"}],"../node_modules/lodash/cloneDeep.js":[function(require,module,exports) {
 var baseClone = require('./_baseClone');
 
 /** Used to compose bitmasks for cloning. */
